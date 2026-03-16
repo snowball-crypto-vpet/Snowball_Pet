@@ -9,7 +9,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: space-between;
+            justify-content: space-around; /* Changed this to fit buttons better */
             transition: all 1.5s ease;
             background: #a2d2ff;
             font-family: sans-serif;
@@ -21,7 +21,7 @@
             position: absolute;
             bottom: 0;
             width: 100%;
-            height: 25%;
+            height: 20%;
             background: #7cfc00;
             transition: background 1.5s ease;
             z-index: -1;
@@ -30,36 +30,46 @@
 
         #bunny-container {
             display: flex;
-            flex: 1;
             align-items: center;
             justify-content: center;
             width: 100%;
+            position: relative;
         }
 
         #bunny-sprite {
-            font-size: 150px;
+            font-size: 120px; /* Slightly smaller to fit everything */
             animation: bounce 2s infinite ease-in-out;
+            position: relative;
+        }
+
+        /* The Babysitter Emoji */
+        #sitter-emoji {
+            position: absolute;
+            right: -60px;
+            bottom: 0;
+            font-size: 50px;
+            display: none; /* Hidden until hired */
         }
 
         @keyframes bounce {
             0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-40px); }
+            50% { transform: translateY(-30px); }
         }
 
         .panel {
             background: rgba(255, 255, 255, 0.8);
-            padding: 15px;
+            padding: 10px;
             border-radius: 20px;
             text-align: center;
             border: 4px solid #7cfc00;
-            margin: 10px;
-            width: 320px;
+            width: 90%; /* Fits phone width better */
+            max-width: 320px;
         }
 
         button {
-            padding: 10px 15px;
-            font-size: 16px;
-            margin: 5px;
+            padding: 8px 12px;
+            font-size: 14px;
+            margin: 3px;
             cursor: pointer;
             border-radius: 12px;
             border: none;
@@ -69,8 +79,7 @@
         }
 
         button:disabled { background: #ccc; box-shadow: none; }
-        
-        .status-text { font-size: 14px; color: #555; margin: 2px; }
+        .status-text { font-size: 13px; color: #555; margin: 2px; }
     </style>
 </head>
 <body>
@@ -78,21 +87,24 @@
     <div id="grass"></div>
 
     <div class="panel">
-        <div id="stats" style="font-weight:bold; font-size: 20px;">Hunger: 100 | Coins: 0</div>
+        <div id="stats" style="font-weight:bold; font-size: 18px;">Hunger: 100 | Coins: 0</div>
         <div class="status-text" id="inv">Carrots in bag: 0</div>
         <div class="status-text" id="sitter-status" style="color: blue; font-weight: bold;"></div>
-        <button onclick="feedBunny()">🥕 Feed Carrot</button>
+        <button onclick="feedBunny()">🥕 Feed</button>
         <button onclick="goSleep()">💤 Sleep</button>
     </div>
 
     <div id="bunny-container">
-        <div id="bunny-sprite">🐰</div>
+        <div id="bunny-sprite">
+            🐰
+            <div id="sitter-emoji">👩‍🍼</div>
+        </div>
     </div>
 
     <div class="panel">
         <strong>🏪 SHOP 🏪</strong><br>
-        <button onclick="buyFood()">Buy 1 Carrot (20 Coins)</button>
-        <button id="sitterBtn" onclick="buySitter()">Hire Sitter (100 Coins)</button>
+        <button onclick="buyFood()">Buy Carrot (20c)</button>
+        <button id="sitterBtn" onclick="buySitter()">Hire Sitter (100c)</button>
     </div>
 
     <script>
@@ -102,16 +114,16 @@
         let hasSitter = false;
         
         let hasEatenBefore = false;
-        let hasSleptBefore = false;
 
         function updateUI() {
             document.getElementById('stats').innerText = `Hunger: ${hunger} | Coins: ${coins}`;
             document.getElementById('inv').innerText = `Carrots in bag: ${carrots}`;
             
             if (hasSitter) {
-                document.getElementById('sitter-status').innerText = "🛡️ Babysitter is Active";
-                document.getElementById('sitterBtn').innerText = "Sitter Hired!";
+                document.getElementById('sitter-status').innerText = "🛡️ Sitter is Active";
+                document.getElementById('sitterBtn').innerText = "Hired!";
                 document.getElementById('sitterBtn').disabled = true;
+                document.getElementById('sitter-emoji').style.display = "block";
             }
         }
 
@@ -120,9 +132,7 @@
                 coins -= 20;
                 carrots += 1;
                 updateUI();
-            } else {
-                alert("Not enough coins!");
-            }
+            } else { alert("Not enough coins!"); }
         }
 
         function buySitter() {
@@ -130,10 +140,8 @@
                 coins -= 100;
                 hasSitter = true;
                 updateUI();
-                alert("The babysitter has arrived! They will keep Snowball fed.");
-            } else {
-                alert("You need 100 coins to hire a sitter!");
-            }
+                alert("The babysitter is here!");
+            } else { alert("You need 100 coins!"); }
         }
 
         function feedBunny() {
@@ -144,43 +152,32 @@
                     hunger += 20;
                     if (hunger > 100) hunger = 100;
                     updateUI();
-                    if (!hasEatenBefore) {
-                        alert("Crunch crunch!");
-                        hasEatenBefore = true;
-                    }
+                    if (!hasEatenBefore) { alert("Crunch!"); hasEatenBefore = true; }
                 }
-            } else {
-                alert("Buy carrots first!");
-            }
+            } else { alert("Buy carrots!"); }
         }
 
         function goSleep() {
             document.body.classList.add('night');
             coins += 30;
             updateUI();
-            if (!hasSleptBefore) {
-                alert("Snowball is dreaming...");
-                hasSleptBefore = true;
-            }
         }
 
-        // LIVING TIMER
+        // --- UPDATED TIMER: FASTER HUNGER ---
         setInterval(function() {
             if (hasSitter) {
-                // If there's a sitter, hunger stays at 100!
                 if (hunger < 100) {
                     hunger = 100;
                     updateUI();
                 }
             } else {
-                // No sitter? Hunger goes down every 5 seconds
                 if (hunger > 0) {
-                    hunger -= 2;
+                    hunger -= 5; // Dropped from 2 to 5!
                     if (hunger < 0) hunger = 0;
                     updateUI();
                 }
             }
-        }, 5000);
+        }, 3000); // Runs every 3 seconds instead of 5!
 
         updateUI();
     </script>
