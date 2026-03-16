@@ -10,16 +10,30 @@
             flex-direction: column;
             align-items: center;
             justify-content: space-between;
-            /* This transition makes the color change smooth like a real sunset */
-            transition: background 2s ease;
-            background: linear-gradient(to bottom, #a2d2ff 75%, #7cfc00 75%);
+            /* This makes the color change look like a real transition */
+            transition: all 1.5s ease;
+            background: #a2d2ff; /* Default Blue Sky */
             font-family: sans-serif;
             overflow: hidden;
         }
 
-        /* This is the Night Time class */
+        /* This is the Night Time Sky */
         body.night {
-            background: linear-gradient(to bottom, #2c3e50 75%, #004d00 75%);
+            background: #2c3e50;
+        }
+
+        #grass {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 25%;
+            background: #7cfc00;
+            transition: background 1.5s ease;
+            z-index: -1;
+        }
+
+        body.night #grass {
+            background: #004d00; /* Darker grass at night */
         }
 
         #bunny-container {
@@ -64,6 +78,8 @@
 </head>
 <body>
 
+    <div id="grass"></div>
+
     <div id="bunny-container">
         <div id="bunny-sprite">🐰</div>
     </div>
@@ -83,22 +99,22 @@
         }
 
         function feedBunny() {
-            // Wake up and turn the sky blue!
+            // Sun comes up!
             document.body.classList.remove('night');
-            
             if (hunger < 100) {
                 hunger += 10;
                 coins += 5;
+                if (hunger > 100) hunger = 100;
                 updateUI();
             }
         }
 
         function goSleep() {
-            // Turn the sky dark!
+            // Sunset happens!
             document.body.classList.add('night');
-            
             coins += 15;
             hunger -= 20;
+            if (hunger < 0) hunger = 0;
             updateUI();
         }
     </script>
