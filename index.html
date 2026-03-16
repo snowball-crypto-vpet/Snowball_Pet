@@ -58,4 +58,158 @@
         <h1 style="color: white; text-shadow: 2px 2px #4361ee;">SNOWBALL PET</h1>
         <div class="panel">
             <input type="text" id="saveName" placeholder="Enter Game Name..." style="padding:10px; border-radius:10px; border:none; width:80%;">
-            <button onclick="createNewGame()" style="background:#7cfc
+            <button onclick="createNewGame()" style="background:#7cfc00; box-shadow: 0 4px #5db500;">CREATE NEW GAME</button>
+        </div>
+        <div class="save-list" id="saveList"></div>
+    </div>
+
+    <div id="game-container">
+        <div id="grass"></div>
+        <div class="panel">
+            <h2 id="current-game-name" style="margin:0; color:#4361ee;">Game</h2>
+            <div id="stats" style="font-size: 18px; font-weight: bold;">Hunger: 100 | Coins: 75</div>
+            <div id="inv" style="font-weight: bold;">Carrots: 30</div>
+            <div id="sitter-status" style="color: #007bff; display: none;">🛡️ Sitter Active</div>
+            <button onclick="feedBunny()">1🥕 Feed</button>
+            <button onclick="goSleep()">💤 Sleep</button>
+        </div>
+        <div id="bunny-sprite">🐰<div id="sitter-emoji">👩‍🍼</div></div>
+        <div class="panel">
+            <strong>🏪 SHOP</strong><br>
+            <button onclick="buyFood()">Buy Carrot (20c)</button>
+            <button id="sitterBtn" onclick="buySitter()">Sitter (100c)</button>
+            <button id="fireBtn" class="fire-btn" onclick="fireSitter()" style="display:none;">Fire Sitter</button>
+            <br>
+            <button onclick="showHome()" style="background:#aaa; box-shadow: 0 4px #888;">SAVE & QUIT</button>
+        </div>
+    </div>
+
+    <script>
+        let currentGameId = null;
+        let stats = { hunger: 100, coins: 75, carrots: 30, hasSitter: false, name: "" };
+
+        function updateUI() {
+            document.getElementById('stats').innerText = `Hunger: ${stats.hunger} | Coins: ${stats.coins}`;
+            document.getElementById('inv').innerText = `Carrots: ${stats.carrots}`;
+            document.getElementById('current-game-name').innerText = stats.name;
+            
+            const sitterStatus = document.getElementById('sitter-status');
+            const sitterBtn = document.getElementById('sitterBtn');
+            const fireBtn = document.getElementById('fireBtn');
+            const sitterEmoji = document.getElementById('sitter-emoji');
+
+            if (stats.hasSitter) {
+                sitterStatus.style.display = "block";
+                sitterBtn.style.display = "none";
+                fireBtn.style.display = "inline-block";
+                sitterEmoji.style.display = "block";
+            } else {
+                sitterStatus.style.display = "none";
+                sitterBtn.style.display = "inline-block";
+                fireBtn.style.display = "none";
+                sitterEmoji.style.display = "none";
+            }
+        }
+
+        function createNewGame() {
+            const name = document.getElementById('saveName').value || "New Game";
+            const id = "snowball_" + Date.now();
+            const newStats = { hunger: 100, coins: 75, carrots: 30, hasSitter: false, name: name };
+            localStorage.setItem(id, JSON.stringify(newStats));
+            document.getElementById('saveName').value = "";
+            renderSaveList();
+        }
+
+        function renderSaveList() {
+            const list = document.getElementById('saveList');
+            list.innerHTML = "<strong>CHOOSE A SAVE:</strong>";
+            for (let i = 0; i < localStorage.length; i++) {
+                const id = localStorage.key(i);
+                if (id && id.startsWith("snowball_")) {
+                    const data = JSON.parse(localStorage.getItem(id));
+                    const div = document.createElement('div');
+                    div.className = "save-item";
+                    div.innerHTML = `
+                        <span onclick="loadGame('${id}')" style="cursor:pointer; flex:1;"><b>${data.name}</b> (💰${data.coins})</span>
+                        <button class="delete-btn" onclick="deleteGame('${id}')">DEL</button>
+                    `;
+                    list.appendChild(div);
+                }
+            }
+        }
+
+        function loadGame(id) {
+            currentGameId = id;
+            stats = JSON.parse(localStorage.getItem(id));
+            document.getElementById('home-screen').style.display = 'none';
+            document.getElementById('game-container').style.display = 'flex';
+            updateUI();
+        }
+
+        function saveGame() {
+            if (currentGameId) {
+                localStorage.setItem(currentGameId, JSON.stringify(stats));
+            }
+        }
+
+        function deleteGame(id) {
+            if (confirm("Delete this save?")) {
+                localStorage.removeItem(id);
+                renderSaveList();
+            }
+        }
+
+        function fireSitter() {
+            if (confirm("Fire the babysitter? Snowball will get hungry again!")) {
+                stats.hasSitter = false;
+                updateUI();
+                saveGame();
+            }
+        }
+
+        function showHome() {
+            saveGame();
+            document.getElementById('home-screen').style.display = 'flex';
+            document.getElementById('game-container').style.display = 'none';
+            renderSaveList();
+        }
+
+        function buyFood() {
+            if (stats.coins >= 20) { stats.coins -= 20; stats.carrots += 1; updateUI(); saveGame(); }
+            else alert("Need coins!");
+        }
+
+        function buySitter() {
+            if (stats.coins >= 100) { stats.hasSitter = true; stats.coins -= 100; updateUI(); saveGame(); }
+            else alert("Need coins!");
+        }
+
+        function feedBunny() {
+            document.body.classList.remove('night');
+            if (stats.carrots > 0 && stats.hunger < 100) {
+                stats.carrots -= 1; stats.hunger = Math.min(100, stats.hunger + 20);
+                updateUI(); saveGame();
+            }
+        }
+
+        function goSleep() {
+            document.body.classList.add('night');
+            stats.coins += 30; updateUI(); saveGame();
+        }
+
+        setInterval(() => {
+            if (document.getElementById('game-container').style.display === 'flex') {
+                if (stats.hasSitter) {
+                    stats.hunger = 100;
+                } else if (stats.hunger > 0) {
+                    stats.hunger -= 5;
+                }
+                updateUI();
+                saveGame();
+            }
+        }, 2000);
+
+        renderSaveList();
+    </script>
+</body>
+</html>
