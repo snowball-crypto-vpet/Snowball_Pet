@@ -115,7 +115,7 @@
         // STARTING STATS
         let hunger = 100;
         let coins = 75; 
-        let carrots = 30; // Now starts at 30
+        let carrots = 30; 
         let hasSitter = false;
 
         function updateUI() {
@@ -148,15 +148,21 @@
         }
 
         function feedBunny() {
+            // Wake up if it's night
             document.body.classList.remove('night');
+            
             if (carrots > 0) {
                 if (hunger < 100) {
                     carrots -= 1;
                     hunger += 20;
                     if (hunger > 100) hunger = 100;
                     updateUI();
-                } else { alert("Snowball is full!"); }
-            } else { alert("Buy carrots in the shop!"); }
+                } else {
+                    alert("Snowball is already full!");
+                }
+            } else {
+                alert("Out of carrots! Buy more in the shop.");
+            }
         }
 
         function goSleep() {
@@ -165,7 +171,7 @@
             updateUI();
         }
 
-        // FAST HUNGER TIMER
+        // HUNGER TIMER (Drops every 3 seconds)
         setInterval(function() {
             if (hasSitter) {
                 hunger = 100;
@@ -179,7 +185,7 @@
             }
         }, 3000);
 
-        // Run UI once at start
+        // Initial UI Call
         updateUI();
     </script>
 </body>
