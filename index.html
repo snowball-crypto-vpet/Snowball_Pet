@@ -5,45 +5,40 @@
     <link rel="icon" type="image/png" href="https://em-content.zobj.net/source/apple/391/rabbit_1f407.png">
     <style>
         body {
-            margin: 0;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            transition: all 1.5s ease;
-            background: #a2d2ff;
-            font-family: sans-serif;
-            overflow: hidden;
+            margin: 0; height: 100vh; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; transition: all 1.5s ease;
+            background: #a2d2ff; font-family: sans-serif; overflow: hidden;
         }
         body.night { background: #2c3e50; }
 
-        /* HOME SCREEN OVERLAY */
+        /* HOME SCREEN */
         #home-screen {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: #a2d2ff;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 100;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #a2d2ff; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; z-index: 100;
+            overflow-y: auto;
+        }
+
+        /* SAVE SLOTS */
+        .save-list {
+            background: rgba(255, 255, 255, 0.5);
+            padding: 15px; border-radius: 20px; width: 280px; margin-top: 10px;
+        }
+        .save-item {
+            background: white; margin: 5px 0; padding: 10px;
+            border-radius: 10px; display: flex; justify-content: space-between; align-items: center;
+            border: 2px solid #4361ee;
         }
 
         /* GAME LAYOUT */
         #game-container { display: none; width: 100%; height: 100%; flex-direction: column; align-items: center; justify-content: space-around; }
-
         #grass { position: absolute; bottom: 0; width: 100%; height: 20%; background: #7cfc00; z-index: -1; }
         body.night #grass { background: #004d00; }
 
         .panel {
-            background: rgba(255, 255, 255, 0.9);
-            padding: 12px;
-            border-radius: 20px;
-            text-align: center;
-            border: 4px solid #7cfc00;
-            width: 85%;
-            max-width: 300px;
+            background: rgba(255, 255, 255, 0.9); padding: 12px;
+            border-radius: 20px; text-align: center; border: 4px solid #7cfc00;
+            width: 85%; max-width: 300px;
         }
 
         #bunny-sprite { font-size: 100px; animation: bounce 2s infinite ease-in-out; position: relative; }
@@ -52,138 +47,161 @@
         @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-30px); } }
 
         button {
-            padding: 12px 20px;
-            font-size: 16px;
-            margin: 5px;
-            cursor: pointer;
-            border-radius: 15px;
-            border: none;
-            background: #4cc9f0;
-            color: white;
-            font-weight: bold;
-            box-shadow: 0 4px #4361ee;
+            padding: 10px 15px; font-size: 14px; margin: 5px; cursor: pointer;
+            border-radius: 15px; border: none; background: #4cc9f0; color: white;
+            font-weight: bold; box-shadow: 0 4px #4361ee;
         }
-        button:active { transform: translateY(2px); box-shadow: 0 2px #4361ee; }
-        .new-game-btn { background: #ff4d4d; box-shadow: 0 4px #cc0000; }
+        .delete-btn { background: #ff4d4d; box-shadow: 0 4px #cc0000; padding: 5px 10px; font-size: 10px; }
     </style>
 </head>
 <body>
 
     <div id="home-screen">
-        <h1 style="font-size: 40px; color: white; text-shadow: 2px 2px #4361ee;">SNOWBALL PET</h1>
-        <div style="font-size: 80px; margin: 20px;">🐰</div>
-        <button onclick="startGame()">CONTINUE / START</button>
-        <button class="new-game-btn" onclick="resetGame()">NEW GAME</button>
+        <h1 style="color: white; text-shadow: 2px 2px #4361ee;">SNOWBALL PET</h1>
+        
+        <div class="panel">
+            <input type="text" id="saveName" placeholder="Enter Game Name..." style="padding:10px; border-radius:10px; border:none; width:80%;">
+            <button onclick="createNewGame()" style="background:#7cfc00; box-shadow: 0 4px #5db500;">CREATE NEW GAME</button>
+        </div>
+
+        <div class="save-list" id="saveList">
+            </div>
     </div>
 
     <div id="game-container">
         <div id="grass"></div>
-        
         <div class="panel">
+            <h2 id="current-game-name" style="margin:0; color:#4361ee;">Game</h2>
             <div id="stats" style="font-size: 18px; font-weight: bold;">Hunger: 100 | Coins: 75</div>
             <div id="inv" style="font-weight: bold;">Carrots: 30</div>
             <div id="sitter-status" style="color: #007bff; display: none;">🛡️ Sitter Active</div>
             <button onclick="feedBunny()">🥕 Feed</button>
             <button onclick="goSleep()">💤 Sleep</button>
         </div>
-
-        <div id="bunny-sprite">
-            🐰
-            <div id="sitter-emoji">👩‍🍼</div>
-        </div>
-
+        <div id="bunny-sprite">🐰<div id="sitter-emoji">👩‍🍼</div></div>
         <div class="panel">
             <strong>🏪 SHOP</strong><br>
             <button onclick="buyFood()">Buy Carrot (20c)</button>
             <button id="sitterBtn" onclick="buySitter()">Sitter (100c)</button>
             <br>
-            <button onclick="showHome()" style="background:#aaa; box-shadow: 0 4px #888; font-size: 12px;">QUIT TO MENU</button>
+            <button onclick="showHome()" style="background:#aaa; box-shadow: 0 4px #888;">SAVE & QUIT</button>
         </div>
     </div>
 
     <script>
-        // Default Stats
-        let hunger = 100;
-        let coins = 75;
-        let carrots = 30;
-        let hasSitter = false;
+        let currentGameId = null;
+        let stats = { hunger: 100, coins: 75, carrots: 30, hasSitter: false, name: "" };
 
-        // SAVE SYSTEM: Loads data when page opens
-        function loadGame() {
-            const savedCoins = localStorage.getItem('snowball_coins');
-            const savedCarrots = localStorage.getItem('snowball_carrots');
-            const savedSitter = localStorage.getItem('snowball_sitter');
+        function updateUI() {
+            document.getElementById('stats').innerText = `Hunger: ${stats.hunger} | Coins: ${stats.coins}`;
+            document.getElementById('inv').innerText = `Carrots: ${stats.carrots}`;
+            document.getElementById('current-game-name').innerText = stats.name;
             
-            if (savedCoins !== null) coins = parseInt(savedCoins);
-            if (savedCarrots !== null) carrots = parseInt(savedCarrots);
-            if (savedSitter === 'true') hasSitter = true;
+            const sitterStatus = document.getElementById('sitter-status');
+            const sitterBtn = document.getElementById('sitterBtn');
+            const sitterEmoji = document.getElementById('sitter-emoji');
+
+            if (stats.hasSitter) {
+                sitterStatus.style.display = "block";
+                sitterBtn.innerText = "Hired!";
+                sitterBtn.disabled = true;
+                sitterEmoji.style.display = "block";
+            } else {
+                sitterStatus.style.display = "none";
+                sitterBtn.innerText = "Sitter (100c)";
+                sitterBtn.disabled = false;
+                sitterEmoji.style.display = "none";
+            }
+        }
+
+        function createNewGame() {
+            const name = document.getElementById('saveName').value || "New Game";
+            const id = "snowball_" + Date.now();
+            const newStats = { hunger: 100, coins: 75, carrots: 30, hasSitter: false, name: name };
+            localStorage.setItem(id, JSON.stringify(newStats));
+            document.getElementById('saveName').value = "";
+            renderSaveList();
+        }
+
+        function renderSaveList() {
+            const list = document.getElementById('saveList');
+            list.innerHTML = "<strong>CHOOSE A SAVE:</strong>";
+            for (let i = 0; i < localStorage.length; i++) {
+                const id = localStorage.key(i);
+                if (id.startsWith("snowball_")) {
+                    const data = JSON.parse(localStorage.getItem(id));
+                    const div = document.createElement('div');
+                    div.className = "save-item";
+                    div.innerHTML = `
+                        <span onclick="loadGame('${id}')" style="cursor:pointer; flex:1;"><b>${data.name}</b> (💰${data.coins})</span>
+                        <button class="delete-btn" onclick="deleteGame('${id}')">DEL</button>
+                    `;
+                    list.appendChild(div);
+                }
+            }
+        }
+
+        function loadGame(id) {
+            currentGameId = id;
+            stats = JSON.parse(localStorage.getItem(id));
+            document.getElementById('home-screen').style.display = 'none';
+            document.getElementById('game-container').style.display = 'flex';
             updateUI();
         }
 
         function saveGame() {
-            localStorage.setItem('snowball_coins', coins);
-            localStorage.setItem('snowball_carrots', carrots);
-            localStorage.setItem('snowball_sitter', hasSitter);
-        }
-
-        function resetGame() {
-            if(confirm("Start a new game? You will lose your coins!")) {
-                coins = 75; carrots = 30; hasSitter = false; hunger = 100;
-                saveGame();
-                startGame();
+            if (currentGameId) {
+                localStorage.setItem(currentGameId, JSON.stringify(stats));
             }
         }
 
-        function startGame() {
-            document.getElementById('home-screen').style.display = 'none';
-            document.getElementById('game-container').style.display = 'flex';
+        function deleteGame(id) {
+            if (confirm("Delete this save?")) {
+                localStorage.removeItem(id);
+                renderSaveList();
+            }
         }
 
         function showHome() {
+            saveGame();
             document.getElementById('home-screen').style.display = 'flex';
             document.getElementById('game-container').style.display = 'none';
-        }
-
-        function updateUI() {
-            document.getElementById('stats').innerText = `Hunger: ${hunger} | Coins: ${coins}`;
-            document.getElementById('inv').innerText = `Carrots: ${carrots}`;
-            if (hasSitter) {
-                document.getElementById('sitter-status').style.display = "block";
-                document.getElementById('sitterBtn').innerText = "Hired!";
-                document.getElementById('sitterBtn').disabled = true;
-                document.getElementById('sitter-emoji').style.display = "block";
-            }
+            renderSaveList();
         }
 
         function buyFood() {
-            if (coins >= 20) { coins -= 20; carrots += 1; updateUI(); saveGame(); }
-            else { alert("Need more coins!"); }
+            if (stats.coins >= 20) { stats.coins -= 20; stats.carrots += 1; updateUI(); saveGame(); }
+            else alert("Need coins!");
         }
 
         function buySitter() {
-            if (coins >= 100) { coins -= 100; hasSitter = true; updateUI(); saveGame(); alert("Sitter hired!"); }
-            else { alert("Need 100 coins!"); }
+            if (stats.coins >= 100) { stats.hasSitter = true; stats.coins -= 100; updateUI(); saveGame(); }
+            else alert("Need coins!");
         }
 
         function feedBunny() {
             document.body.classList.remove('night');
-            if (carrots > 0) {
-                if (hunger < 100) { carrots -= 1; hunger += 20; if (hunger > 100) hunger = 100; updateUI(); saveGame(); }
-            } else { alert("Buy more carrots!"); }
+            if (stats.carrots > 0 && stats.hunger < 100) {
+                stats.carrots -= 1; stats.hunger = Math.min(100, stats.hunger + 20);
+                updateUI(); saveGame();
+            }
         }
 
         function goSleep() {
             document.body.classList.add('night');
-            coins += 30; updateUI(); saveGame();
+            stats.coins += 30; updateUI(); saveGame();
         }
 
         setInterval(() => {
-            if (hasSitter) { hunger = 100; updateUI(); }
-            else if (hunger > 0) { hunger -= 5; updateUI(); }
+            if (document.getElementById('game-container').style.display === 'flex') {
+                if (stats.hasSitter) stats.hunger = 100;
+                else if (stats.hunger > 0) stats.hunger -= 5;
+                updateUI();
+                saveGame();
+            }
         }, 3000);
 
-        // Run on Startup
-        loadGame();
+        renderSaveList();
     </script>
 </body>
 </html>
