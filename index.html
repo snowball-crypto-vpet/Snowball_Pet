@@ -9,7 +9,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: space-around; /* Changed this to fit buttons better */
+            justify-content: space-around;
             transition: all 1.5s ease;
             background: #a2d2ff;
             font-family: sans-serif;
@@ -37,18 +37,17 @@
         }
 
         #bunny-sprite {
-            font-size: 120px; /* Slightly smaller to fit everything */
+            font-size: 120px;
             animation: bounce 2s infinite ease-in-out;
             position: relative;
         }
 
-        /* The Babysitter Emoji */
         #sitter-emoji {
             position: absolute;
             right: -60px;
             bottom: 0;
             font-size: 50px;
-            display: none; /* Hidden until hired */
+            display: none;
         }
 
         @keyframes bounce {
@@ -62,7 +61,7 @@
             border-radius: 20px;
             text-align: center;
             border: 4px solid #7cfc00;
-            width: 90%; /* Fits phone width better */
+            width: 90%;
             max-width: 320px;
         }
 
@@ -87,10 +86,10 @@
     <div id="grass"></div>
 
     <div class="panel">
-        <div id="stats" style="font-weight:bold; font-size: 18px;">Hunger: 100 | Coins: 0</div>
-        <div class="status-text" id="inv">Carrots in bag: 0</div>
+        <div id="stats" style="font-weight:bold; font-size: 18px;">Hunger: 100 | Coins: 75</div>
+        <div class="status-text" id="inv">Carrots in bag: 30</div>
         <div class="status-text" id="sitter-status" style="color: blue; font-weight: bold;"></div>
-        <button onclick="feedBunny()">🥕 Feed</button>
+        <button onclick="feedBunny()">1🥕 Feed</button>
         <button onclick="goSleep()">💤 Sleep</button>
     </div>
 
@@ -108,11 +107,11 @@
     </div>
 
     <script>
+        // STARTING STATS CHANGED HERE
         let hunger = 100;
-        let coins = 0;
-        let carrots = 0;
+        let coins = 75; 
+        let carrots = 30;
         let hasSitter = false;
-        
         let hasEatenBefore = false;
 
         function updateUI() {
@@ -135,51 +134,4 @@
             } else { alert("Not enough coins!"); }
         }
 
-        function buySitter() {
-            if (coins >= 100) {
-                coins -= 100;
-                hasSitter = true;
-                updateUI();
-                alert("The babysitter is here!");
-            } else { alert("You need 100 coins!"); }
-        }
-
-        function feedBunny() {
-            document.body.classList.remove('night');
-            if (carrots > 0) {
-                if (hunger < 100) {
-                    carrots -= 1;
-                    hunger += 20;
-                    if (hunger > 100) hunger = 100;
-                    updateUI();
-                    if (!hasEatenBefore) { alert("Crunch!"); hasEatenBefore = true; }
-                }
-            } else { alert("Buy carrots!"); }
-        }
-
-        function goSleep() {
-            document.body.classList.add('night');
-            coins += 30;
-            updateUI();
-        }
-
-        // --- UPDATED TIMER: FASTER HUNGER ---
-        setInterval(function() {
-            if (hasSitter) {
-                if (hunger < 100) {
-                    hunger = 100;
-                    updateUI();
-                }
-            } else {
-                if (hunger > 0) {
-                    hunger -= 5; // Dropped from 2 to 5!
-                    if (hunger < 0) hunger = 0;
-                    updateUI();
-                }
-            }
-        }, 3000); // Runs every 3 seconds instead of 5!
-
-        updateUI();
-    </script>
-</body>
-</html>
+        function
