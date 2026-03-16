@@ -44,4 +44,18 @@
         @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-30px); } }
 
         button {
-            padding: 10px 15px; font-size: 14px; margin: 5px; cursor:
+            padding: 10px 15px; font-size: 14px; margin: 5px; cursor: pointer;
+            border-radius: 15px; border: none; background: #4cc9f0; color: white;
+            font-weight: bold; box-shadow: 0 4px #4361ee;
+        }
+        .delete-btn { background: #ff4d4d; box-shadow: 0 4px #cc0000; padding: 5px 10px; font-size: 10px; }
+        .fire-btn { background: #ff9800; box-shadow: 0 4px #e68a00; }
+    </style>
+</head>
+<body>
+
+    <div id="home-screen">
+        <h1 style="color: white; text-shadow: 2px 2px #4361ee;">SNOWBALL PET</h1>
+        <div class="panel">
+            <input type="text" id="saveName" placeholder="Enter Game Name..." style="padding:10px; border-radius:10px; border:none; width:80%;">
+            <button onclick="createNewGame()" style="background:#7cfc
