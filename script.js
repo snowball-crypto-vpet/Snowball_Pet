@@ -1,26 +1,192 @@
-let hunger = 100;
-let coins = 20;
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Snowball Pet</title>
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-around;
+            transition: all 1.5s ease;
+            background: #a2d2ff;
+            font-family: sans-serif;
+            overflow: hidden;
+        }
+        body.night { background: #2c3e50; }
 
-function updateUI() {
-    document.getElementById('stats').innerText = `Hunger: ${hunger} | Coins: ${coins}`;
-}
+        #grass {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 20%;
+            background: #7cfc00;
+            transition: background 1.5s ease;
+            z-index: -1;
+        }
+        body.night #grass { background: #004d00; }
 
-function feedBunny() {
-    if (hunger < 100) {
-        hunger += 10;
-        coins += 5;
-        if (hunger > 100) hunger = 100;
+        #bunny-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            position: relative;
+        }
+
+        #bunny-sprite {
+            font-size: 100px;
+            animation: bounce 2s infinite ease-in-out;
+            position: relative;
+        }
+
+        #sitter-emoji {
+            position: absolute;
+            right: -50px;
+            bottom: 0;
+            font-size: 40px;
+            display: none;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-30px); }
+        }
+
+        .panel {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 12px;
+            border-radius: 20px;
+            text-align: center;
+            border: 4px solid #7cfc00;
+            width: 85%;
+            max-width: 300px;
+            z-index: 10;
+        }
+
+        button {
+            padding: 10px 15px;
+            font-size: 14px;
+            margin: 4px;
+            cursor: pointer;
+            border-radius: 12px;
+            border: none;
+            background: #a2d2ff;
+            color: white;
+            box-shadow: 0 4px #7fb5e6;
+            font-weight: bold;
+        }
+
+        button:active { transform: translateY(2px); box-shadow: 0 2px #7fb5e6; }
+        button:disabled { background: #ccc; box-shadow: none; opacity: 0.6; }
+        .status-text { font-size: 14px; color: #444; margin: 3px; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div id="grass"></div>
+
+    <div class="panel">
+        <div id="stats" style="font-size: 18px; margin-bottom: 5px;">Hunger: 100 | Coins: 75</div>
+        <div class="status-text" id="inv">Carrots: 30</div>
+        <div class="status-text" id="sitter-status" style="color: #007bff; display: none;">🛡️ Sitter Active</div>
+        <div style="display: flex; justify-content: center;">
+            <button onclick="feedBunny()">🥕 Feed</button>
+            <button onclick="goSleep()">💤 Sleep</button>
+        </div>
+    </div>
+
+    <div id="bunny-container">
+        <div id="bunny-sprite">
+            🐰
+            <div id="sitter-emoji">👩‍🍼</div>
+        </div>
+    </div>
+
+    <div class="panel">
+        <strong style="color: #555;">🏪 REWARDS SHOP</strong><br>
+        <button onclick="buyFood()">Get Carrot (20c)</button>
+        <button id="sitterBtn" onclick="buySitter()">Hire Sitter (100c)</button>
+    </div>
+
+    <script>
+        // STARTING STATS
+        let hunger = 100;
+        let coins = 75; 
+        let carrots = 30; 
+        let hasSitter = false;
+
+        function updateUI() {
+            document.getElementById('stats').innerText = `Hunger: ${hunger} | Coins: ${coins}`;
+            document.getElementById('inv').innerText = `Carrots: ${carrots}`;
+            
+            if (hasSitter) {
+                document.getElementById('sitter-status').style.display = "block";
+                document.getElementById('sitterBtn').innerText = "Hired!";
+                document.getElementById('sitterBtn').disabled = true;
+                document.getElementById('sitter-emoji').style.display = "block";
+            }
+        }
+
+        function buyFood() {
+            if (coins >= 20) {
+                coins -= 20;
+                carrots += 1;
+                updateUI();
+            } else { alert("Need more coins!"); }
+        }
+
+        function buySitter() {
+            if (coins >= 100) {
+                coins -= 100;
+                hasSitter = true;
+                updateUI();
+                alert("Sitter hired! Hunger is now locked at 100.");
+            } else { alert("Need 100 coins!"); }
+        }
+
+        function feedBunny() {
+            // Wake up if it's night
+            document.body.classList.remove('night');
+            
+            if (carrots > 0) {
+                if (hunger < 100) {
+                    carrots -= 1;
+                    hunger += 20;
+                    if (hunger > 100) hunger = 100;
+                    updateUI();
+                } else {
+                    alert("Snowball is already full!");
+                }
+            } else {
+                alert("Out of carrots! Buy more in the shop.");
+            }
+        }
+
+        function goSleep() {
+            document.body.classList.add('night');
+            coins += 30;
+            updateUI();
+        }
+
+        // HUNGER TIMER (Drops every 3 seconds)
+        setInterval(function() {
+            if (hasSitter) {
+                hunger = 100;
+                updateUI();
+            } else {
+                if (hunger > 0) {
+                    hunger -= 5;
+                    if (hunger < 0) hunger = 0;
+                    updateUI();
+                }
+            }
+        }, 3000);
+
+        // Initial UI Call
         updateUI();
-        alert("Nom nom! Snowball is happy.");
-    } else {
-        alert("Snowball is full!");
-    }
-}
-
-function goSleep() {
-    alert("Snowball is dreaming of carrots...");
-    coins += 10;
-    hunger -= 20;
-    if (hunger < 0) hunger = 0;
-    updateUI();
-}
+    </script>
+</body>
+</html>
