@@ -96,7 +96,6 @@
         let coins = 0;
         let carrots = 0;
         
-        // These keep track of if the notification has popped up yet
         let hasEatenBefore = false;
         let hasSleptBefore = false;
 
@@ -124,10 +123,9 @@
                     if (hunger > 100) hunger = 100;
                     updateUI();
                     
-                    // ONLY show alert if it's the first time
                     if (hasEatenBefore === false) {
                         alert("Crunch crunch! Snowball loved that carrot.");
-                        hasEatenBefore = true; // Now it's true, so the alert won't show again
+                        hasEatenBefore = true;
                     }
                 }
             } else {
@@ -138,8 +136,6 @@
         function goSleep() {
             document.body.classList.add('night');
             coins += 30;
-            hunger -= 20;
-            if (hunger < 0) hunger = 0;
             updateUI();
 
             if (hasSleptBefore === false) {
@@ -147,6 +143,16 @@
                 hasSleptBefore = true;
             }
         }
+
+        // --- NEW: THE LIVING TIMER ---
+        // This runs every 5000 milliseconds (5 seconds)
+        setInterval(function() {
+            if (hunger > 0) {
+                hunger -= 2; // Lose 2 hunger points
+                if (hunger < 0) hunger = 0;
+                updateUI();
+            }
+        }, 5000);
 
         updateUI();
     </script>
