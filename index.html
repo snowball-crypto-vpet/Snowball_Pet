@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Snowball Pet</title>
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            background: linear-gradient(to bottom, #a2d2ff 75%, #7cfc00 75%);
+            font-family: sans-serif;
+            overflow: hidden;
+        }
+
+        #bunny-container {
+            display: flex;
+            flex: 1;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+        }
+
+        #bunny-sprite {
+            font-size: 150px;
+            animation: bounce 2s infinite;
+            display: inline-block;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-30px); }
+        }
+
+        #ui {
+            padding-bottom: 50px;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 20px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            margin: 5px;
+            cursor: pointer;
+            border-radius: 10px;
+            border: none;
+            background: white;
+            box-shadow: 0 4px #ccc;
+        }
+
+        button:active {
+            box-shadow: 0 2px #ccc;
+            transform: translateY(2px);
+        }
+    </style>
+</head>
+<body>
+
+    <div id="bunny-container">
+        <div id="bunny-sprite">🐰</div>
+    </div>
+
+    <div id="ui">
+        <p id="stats">Hunger: 100 | Coins: 0</p>
+        <button onclick="feedBunny()">Feed Snowball</button>
+        <button onclick="goSleep()">Put to Sleep</button>
+    </div>
+
+    <script>
+        let hunger = 100;
+        let coins = 0;
+
+        function updateUI() {
+            document.getElementById('stats').innerText = `Hunger: ${hunger} | Coins: ${coins}`;
+        }
+
+        function feedBunny() {
+            if (hunger < 100) {
+                hunger += 10;
+                coins += 5;
+                if (hunger > 100) hunger = 100;
+                updateUI();
+                alert("Nom nom! Snowball is happy.");
+            } else {
+                alert("Snowball is full!");
+            }
+        }
+
+        function goSleep() {
+            alert("Snowball is dreaming of carrots...");
+            coins += 10;
+            hunger -= 20;
+            if (hunger < 0) hunger = 0;
+            updateUI();
+        }
+    </script>
+</body>
+</html>
