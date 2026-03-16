@@ -59,12 +59,10 @@
 
     <div id="home-screen">
         <h1 style="color: white; text-shadow: 2px 2px #4361ee;">SNOWBALL PET</h1>
-        
         <div class="panel">
             <input type="text" id="saveName" placeholder="Enter Game Name..." style="padding:10px; border-radius:10px; border:none; width:80%;">
             <button onclick="createNewGame()" style="background:#7cfc00; box-shadow: 0 4px #5db500;">CREATE NEW GAME</button>
         </div>
-
         <div class="save-list" id="saveList"></div>
     </div>
 
@@ -75,7 +73,7 @@
             <div id="stats" style="font-size: 18px; font-weight: bold;">Hunger: 100 | Coins: 75</div>
             <div id="inv" style="font-weight: bold;">Carrots: 30</div>
             <div id="sitter-status" style="color: #007bff; display: none;">🛡️ Sitter Active</div>
-            <button onclick="feedBunny()">🥕 Feed</button>
+            <button onclick="feedBunny()">1🥕 Feed</button>
             <button onclick="goSleep()">💤 Sleep</button>
         </div>
         <div id="bunny-sprite">🐰<div id="sitter-emoji">👩‍🍼</div></div>
@@ -111,8 +109,6 @@
             } else {
                 sitterStatus.style.display = "none";
                 sitterBtn.style.display = "inline-block";
-                sitterBtn.innerText = "Sitter (100c)";
-                sitterBtn.disabled = false;
                 fireBtn.style.display = "none";
                 sitterEmoji.style.display = "none";
             }
@@ -130,3 +126,41 @@
         function renderSaveList() {
             const list = document.getElementById('saveList');
             list.innerHTML = "<strong>CHOOSE A SAVE:</strong>";
+            for (let i = 0; i < localStorage.length; i++) {
+                const id = localStorage.key(i);
+                if (id.startsWith("snowball_")) {
+                    const data = JSON.parse(localStorage.getItem(id));
+                    const div = document.createElement('div');
+                    div.className = "save-item";
+                    div.innerHTML = `
+                        <span onclick="loadGame('${id}')" style="cursor:pointer; flex:1;"><b>${data.name}</b> (💰${data.coins})</span>
+                        <button class="delete-btn" onclick="deleteGame('${id}')">DEL</button>
+                    `;
+                    list.appendChild(div);
+                }
+            }
+        }
+
+        function loadGame(id) {
+            currentGameId = id;
+            stats = JSON.parse(localStorage.getItem(id));
+            document.getElementById('home-screen').style.display = 'none';
+            document.getElementById('game-container').style.display = 'flex';
+            updateUI();
+        }
+
+        function saveGame() {
+            if (currentGameId) {
+                localStorage.setItem(currentGameId, JSON.stringify(stats));
+            }
+        }
+
+        function deleteGame(id) {
+            if (confirm("Delete this save?")) {
+                localStorage.removeItem(id);
+                renderSaveList();
+            }
+        }
+
+        function fireSitter() {
+            if (confirm("Fire the babysitter? Snowball will get hungry again!")) {
