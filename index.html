@@ -10,9 +10,16 @@
             flex-direction: column;
             align-items: center;
             justify-content: space-between;
+            /* This transition makes the color change smooth like a real sunset */
+            transition: background 2s ease;
             background: linear-gradient(to bottom, #a2d2ff 75%, #7cfc00 75%);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: sans-serif;
             overflow: hidden;
+        }
+
+        /* This is the Night Time class */
+        body.night {
+            background: linear-gradient(to bottom, #2c3e50 75%, #004d00 75%);
         }
 
         #bunny-container {
@@ -26,9 +33,6 @@
         #bunny-sprite {
             font-size: 150px;
             animation: bounce 2s infinite ease-in-out;
-            display: inline-block;
-            cursor: pointer;
-            user-select: none;
         }
 
         @keyframes bounce {
@@ -38,59 +42,39 @@
 
         #ui {
             background: rgba(255, 255, 255, 0.8);
-            padding: 20px 40px;
+            padding: 20px;
             border-radius: 30px;
             margin-bottom: 40px;
             text-align: center;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
             border: 4px solid #7cfc00;
         }
 
-        #stats {
-            font-size: 24px;
-            font-weight: bold;
-            color: #333;
-            margin-bottom: 15px;
-        }
-
         button {
-            padding: 12px 25px;
+            padding: 12px 20px;
             font-size: 18px;
-            font-weight: bold;
             margin: 5px;
             cursor: pointer;
             border-radius: 15px;
             border: none;
             background: #a2d2ff;
             color: white;
-            box-shadow: 0 5px #7fb5e6;
-            transition: 0.1s;
-        }
-
-        button:active {
-            box-shadow: 0 2px #7fb5e6;
-            transform: translateY(3px);
-        }
-
-        button:hover {
-            background: #89c2ff;
+            box-shadow: 0 4px #7fb5e6;
         }
     </style>
 </head>
 <body>
 
     <div id="bunny-container">
-        <div id="bunny-sprite" onclick="petBunny()">🐰</div>
+        <div id="bunny-sprite">🐰</div>
     </div>
 
     <div id="ui">
         <div id="stats">Hunger: 100 | Coins: 0</div>
-        <button onclick="feedBunny()">🍎 Feed Snowball</button>
-        <button onclick="goSleep()">💤 Put to Sleep</button>
+        <button onclick="feedBunny()">🍎 Feed</button>
+        <button onclick="goSleep()">💤 Sleep</button>
     </div>
 
     <script>
-        // These are Snowball's "Brain" variables
         let hunger = 100;
         let coins = 0;
 
@@ -99,27 +83,22 @@
         }
 
         function feedBunny() {
+            // Wake up and turn the sky blue!
+            document.body.classList.remove('night');
+            
             if (hunger < 100) {
                 hunger += 10;
-                coins += 5; // You earn coins for taking care of him!
-                if (hunger > 100) hunger = 100;
+                coins += 5;
                 updateUI();
-            } else {
-                alert("Snowball is too full for more apples!");
             }
         }
 
         function goSleep() {
-            alert("Snowball is dreaming of giant carrots...");
+            // Turn the sky dark!
+            document.body.classList.add('night');
+            
             coins += 15;
-            hunger -= 20; // Sleeping makes him hungry
-            if (hunger < 0) hunger = 0;
-            updateUI();
-        }
-
-        function petBunny() {
-            // Extra secret: click the bunny directly!
-            coins += 1;
+            hunger -= 20;
             updateUI();
         }
     </script>
