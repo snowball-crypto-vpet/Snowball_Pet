@@ -11,7 +11,6 @@
         }
         body.night { background: #2c3e50; }
 
-        /* HOME SCREEN */
         #home-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: #a2d2ff; display: flex; flex-direction: column;
@@ -19,7 +18,6 @@
             overflow-y: auto;
         }
 
-        /* SAVE SLOTS */
         .save-list {
             background: rgba(255, 255, 255, 0.5);
             padding: 15px; border-radius: 20px; width: 280px; margin-top: 10px;
@@ -30,7 +28,6 @@
             border: 2px solid #4361ee;
         }
 
-        /* GAME LAYOUT */
         #game-container { display: none; width: 100%; height: 100%; flex-direction: column; align-items: center; justify-content: space-around; }
         #grass { position: absolute; bottom: 0; width: 100%; height: 20%; background: #7cfc00; z-index: -1; }
         body.night #grass { background: #004d00; }
@@ -47,120 +44,4 @@
         @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-30px); } }
 
         button {
-            padding: 10px 15px; font-size: 14px; margin: 5px; cursor: pointer;
-            border-radius: 15px; border: none; background: #4cc9f0; color: white;
-            font-weight: bold; box-shadow: 0 4px #4361ee;
-        }
-        .delete-btn { background: #ff4d4d; box-shadow: 0 4px #cc0000; padding: 5px 10px; font-size: 10px; }
-        .fire-btn { background: #ff9800; box-shadow: 0 4px #e68a00; }
-    </style>
-</head>
-<body>
-
-    <div id="home-screen">
-        <h1 style="color: white; text-shadow: 2px 2px #4361ee;">SNOWBALL PET</h1>
-        <div class="panel">
-            <input type="text" id="saveName" placeholder="Enter Game Name..." style="padding:10px; border-radius:10px; border:none; width:80%;">
-            <button onclick="createNewGame()" style="background:#7cfc00; box-shadow: 0 4px #5db500;">CREATE NEW GAME</button>
-        </div>
-        <div class="save-list" id="saveList"></div>
-    </div>
-
-    <div id="game-container">
-        <div id="grass"></div>
-        <div class="panel">
-            <h2 id="current-game-name" style="margin:0; color:#4361ee;">Game</h2>
-            <div id="stats" style="font-size: 18px; font-weight: bold;">Hunger: 100 | Coins: 75</div>
-            <div id="inv" style="font-weight: bold;">Carrots: 30</div>
-            <div id="sitter-status" style="color: #007bff; display: none;">🛡️ Sitter Active</div>
-            <button onclick="feedBunny()">1🥕 Feed</button>
-            <button onclick="goSleep()">💤 Sleep</button>
-        </div>
-        <div id="bunny-sprite">🐰<div id="sitter-emoji">👩‍🍼</div></div>
-        <div class="panel">
-            <strong>🏪 SHOP</strong><br>
-            <button onclick="buyFood()">Buy Carrot (20c)</button>
-            <button id="sitterBtn" onclick="buySitter()">Sitter (100c)</button>
-            <button id="fireBtn" class="fire-btn" onclick="fireSitter()" style="display:none;">Fire Sitter</button>
-            <br>
-            <button onclick="showHome()" style="background:#aaa; box-shadow: 0 4px #888;">SAVE & QUIT</button>
-        </div>
-    </div>
-
-    <script>
-        let currentGameId = null;
-        let stats = { hunger: 100, coins: 75, carrots: 30, hasSitter: false, name: "" };
-
-        function updateUI() {
-            document.getElementById('stats').innerText = `Hunger: ${stats.hunger} | Coins: ${stats.coins}`;
-            document.getElementById('inv').innerText = `Carrots: ${stats.carrots}`;
-            document.getElementById('current-game-name').innerText = stats.name;
-            
-            const sitterStatus = document.getElementById('sitter-status');
-            const sitterBtn = document.getElementById('sitterBtn');
-            const fireBtn = document.getElementById('fireBtn');
-            const sitterEmoji = document.getElementById('sitter-emoji');
-
-            if (stats.hasSitter) {
-                sitterStatus.style.display = "block";
-                sitterBtn.style.display = "none";
-                fireBtn.style.display = "inline-block";
-                sitterEmoji.style.display = "block";
-            } else {
-                sitterStatus.style.display = "none";
-                sitterBtn.style.display = "inline-block";
-                fireBtn.style.display = "none";
-                sitterEmoji.style.display = "none";
-            }
-        }
-
-        function createNewGame() {
-            const name = document.getElementById('saveName').value || "New Game";
-            const id = "snowball_" + Date.now();
-            const newStats = { hunger: 100, coins: 75, carrots: 30, hasSitter: false, name: name };
-            localStorage.setItem(id, JSON.stringify(newStats));
-            document.getElementById('saveName').value = "";
-            renderSaveList();
-        }
-
-        function renderSaveList() {
-            const list = document.getElementById('saveList');
-            list.innerHTML = "<strong>CHOOSE A SAVE:</strong>";
-            for (let i = 0; i < localStorage.length; i++) {
-                const id = localStorage.key(i);
-                if (id.startsWith("snowball_")) {
-                    const data = JSON.parse(localStorage.getItem(id));
-                    const div = document.createElement('div');
-                    div.className = "save-item";
-                    div.innerHTML = `
-                        <span onclick="loadGame('${id}')" style="cursor:pointer; flex:1;"><b>${data.name}</b> (💰${data.coins})</span>
-                        <button class="delete-btn" onclick="deleteGame('${id}')">DEL</button>
-                    `;
-                    list.appendChild(div);
-                }
-            }
-        }
-
-        function loadGame(id) {
-            currentGameId = id;
-            stats = JSON.parse(localStorage.getItem(id));
-            document.getElementById('home-screen').style.display = 'none';
-            document.getElementById('game-container').style.display = 'flex';
-            updateUI();
-        }
-
-        function saveGame() {
-            if (currentGameId) {
-                localStorage.setItem(currentGameId, JSON.stringify(stats));
-            }
-        }
-
-        function deleteGame(id) {
-            if (confirm("Delete this save?")) {
-                localStorage.removeItem(id);
-                renderSaveList();
-            }
-        }
-
-        function fireSitter() {
-            if (confirm("Fire the babysitter? Snowball will get hungry again!")) {
+            padding: 10px 15px; font-size: 14px; margin: 5px; cursor:
