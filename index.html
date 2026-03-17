@@ -49,7 +49,7 @@
             <h2 id="current-game-name">Pet</h2>
             <div id="lvl-display">Lvl 1</div>
             <div id="xp-container"><div id="xp-fill"></div></div>
-            <div id="stats">Hunger: 100 | Coins: 75 | Carrots: 0</div>
+            <div id="stats-display">Hunger: 100 | Coins: 75 | Carrots: 5</div>
             <button onclick="feedBunny()">🥕 Feed</button>
             <button id="sleep-btn" onclick="goSleep()">💤 Sleep</button>
             <button id="wake-btn" onclick="wakeUp()">☀️ WAKE UP</button>
@@ -63,83 +63,121 @@
     <script>
         let currentGameId = null;
         let stats = { hunger: 100, coins: 75, carrots: 5, name: "", level: 1, xp: 0, friend: "" };
+
         function updateUI() {
             if (!currentGameId) return;
-            document.getElementById('stats').innerText = `Hunger: ${stats.hunger} | Coins: ${stats.coins} | Carrots: ${stats.carrots}`;
+            // This is the line that was broken!
+            document.getElementById('stats-display').innerText = "Hunger: " + stats.hunger + " | Coins: " + stats.coins + " | Carrots: " + stats.carrots;
             document.getElementById('current-game-name').innerText = stats.name;
-            document.getElementById('shop-coins').innerText = `Coins: ${stats.coins}`;
-            document.getElementById('lvl-display').innerText = `Lvl ${stats.level}`;
+            document.getElementById('shop-coins').innerText = "Coins: " + stats.coins;
+            document.getElementById('lvl-display').innerText = "Lvl " + stats.level;
             document.getElementById('friend-sprite').innerText = stats.friend || "";
             let xpNeeded = stats.level * 100;
             document.getElementById('xp-fill').style.width = Math.min(100, (stats.xp / xpNeeded) * 100) + "%";
             if (stats.level >= 10) document.getElementById('pet-shop').style.display = "block";
         }
+
         function addXP(amount) {
             stats.xp += amount;
             if (stats.xp >= (stats.level * 100)) { stats.xp = 0; stats.level++; stats.coins += 50; alert("LEVEL UP!"); }
             updateUI(); saveGame();
         }
+
         function createNewGame() {
             const name = document.getElementById('saveName').value || "Pet";
             const id = "snowball_" + Date.now();
             localStorage.setItem(id, JSON.stringify({...stats, name: name}));
             renderSaveList();
         }
+
         function renderSaveList() {
-            const list = document.getElementById('saveList'); list.innerHTML = "";
+            const list = document.getElementById('saveList');
+            list.innerHTML = "";
             for (let i = 0; i < localStorage.length; i++) {
                 const id = localStorage.key(i);
                 if (id && id.startsWith("snowball_")) {
                     const data = JSON.parse(localStorage.getItem(id));
                     const btn = document.createElement('button');
-                    btn.innerText = `${data.name} (Lvl ${data.level})`;
+                    btn.innerText = data.name + " (Lvl " + data.level + ")";
                     btn.onclick = () => loadGame(id);
                     list.appendChild(btn);
                 }
             }
         }
+
         function loadGame(id) {
-            currentGameId = id; stats = JSON.parse(localStorage.getItem(id));
-            if (stats.carrots === undefined) stats.carrots = 0; // Fix for old saves
+            currentGameId = id;
+            stats = JSON.parse(localStorage.getItem(id));
+            if (stats.carrots === undefined) stats.carrots = 0;
             document.getElementById('home-screen').style.display = 'none';
             document.getElementById('game-container').style.display = 'flex';
             updateUI();
         }
+
         function saveGame() { if (currentGameId) localStorage.setItem(currentGameId, JSON.stringify(stats)); }
         function openShop() { document.getElementById('shop-screen').style.display = 'flex'; updateUI(); }
         function closeShop() { document.getElementById('shop-screen').style.display = 'none'; }
-        function buyFood() { if (stats.coins >= 20) { stats.coins -= 20; stats.carrots += 1; updateUI(); saveGame(); } }
-        function useGym() { if (stats.coins >= 5) { stats.coins -= 5; addXP(20); } }
-        function doWork() { stats.coins += 10; updateUI(); saveGame(); }
-        function buyFriend(e) { if (stats.coins >= 200) { stats.coins -= 200; stats.friend = e; updateUI(); saveGame(); } }
-        function feedBunny() { 
-            if (stats.carrots > 0 && stats.hunger < 100) { 
-                stats.carrots -= 1; 
-                stats.hunger = Math.min(100, stats.hunger + 20); 
-                addXP(20); 
-            } else if (stats.carrots <= 0) {
-                alert("Out of carrots! Go to the shop!");
+        
+        function buyFood() {
+            if (stats.coins >= 20) {
+                stats.coins -= 20;
+                stats.carrots += 1;
+                updateUI();
+                saveGame();
             }
         }
+
+        function useGym() { if (stats.coins >= 5) { stats.coins -= 5; addXP(20); } }
+        function doWork() { stats.coins += 10; updateUI(); saveGame(); }
+        
+        function buyFriend(e) {
+            if (stats.coins >= 200) {
+                stats.coins -= 200;
+                stats.friend = e;
+                updateUI();
+                saveGame();
+            }
+        }
+
+        function feedBunny() {
+            if (stats.carrots > 0 && stats.hunger < 100) {
+                stats.carrots -= 1;
+                stats.hunger = Math.min(100, stats.hunger + 20);
+                addXP(20);
+                updateUI();
+                saveGame();
+            } else if (stats.carrots <= 0) {
+                alert("Out of carrots! Buy some in the shop.");
+            }
+        }
+
         function goSleep() {
             document.body.classList.add('night');
             document.getElementById('sleep-btn').style.display = 'none';
             document.getElementById('wake-btn').style.display = 'inline-block';
-            stats.coins += 30; saveGame(); updateUI();
+            stats.coins += 30;
+            saveGame();
+            updateUI();
         }
+
         function wakeUp() {
             document.body.classList.remove('night');
             document.getElementById('sleep-btn').style.display = 'inline-block';
             document.getElementById('wake-btn').style.display = 'none';
             saveGame();
+            updateUI();
         }
+
         function showHome() { saveGame(); location.reload(); }
+
         setInterval(() => {
             if (currentGameId && !document.body.classList.contains('night')) {
                 stats.hunger = Math.max(0, stats.hunger - 2);
-                updateUI(); saveGame();
+                updateUI();
+                saveGame();
             }
         }, 3000);
+
         renderSaveList();
     </script>
 </body>
