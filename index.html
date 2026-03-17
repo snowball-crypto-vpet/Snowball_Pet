@@ -151,6 +151,7 @@
 
         function renderSaveList() {
             const list = document.getElementById('saveList');
+            if (!list) return;
             list.innerHTML = "<strong>CHOOSE A SAVE:</strong>";
             for (let i = 0; i < localStorage.length; i++) {
                 const id = localStorage.key(i);
@@ -176,13 +177,52 @@
         function deleteGame(id) { if (confirm("Delete?")) { localStorage.removeItem(id); renderSaveList(); } }
         function openShop() { document.getElementById('shop-screen').style.display = 'flex'; updateUI(); }
         function closeShop() { document.getElementById('shop-screen').style.display = 'none'; }
-        function buyFood() { if (stats.coins >= 20) { stats.coins -= 20; stats.carrots += 1; updateUI(); saveGame(); } }
-        function useGym() { if (stats.coins >= 5) { stats.coins -= 5; addXP(20); } }
-        function buyFriend(emoji) { if (stats.coins >= 200) { stats.coins -= 200; stats.friend = emoji; updateUI(); saveGame(); } }
-        function buySitter() { if (stats.coins >= 100) { stats.hasSitter = true; stats.coins -= 100; updateUI(); saveGame(); } }
-        function feedBunny() { if (stats.carrots > 0 && stats.hunger < 100) { stats.carrots -= 1; stats.hunger = Math.min(100, stats.hunger + 20); addXP(20); } }
-        function goSleep() { document.body.classList.add('night'); stats.coins += 30; updateUI(); saveGame(); }
-        function showHome() { saveGame(); document.getElementById('home-screen').style.display = 'flex'; document.getElementById('game-container').style.display = 'none'; renderSaveList(); }
+        
+        function buyFood() { 
+            if (stats.coins >= 20) { 
+                stats.coins -= 20; stats.carrots += 1; updateUI(); saveGame(); 
+            } else { alert("Need 20 coins!"); }
+        }
+        
+        function useGym() { 
+            if (stats.coins >= 5) { 
+                stats.coins -= 5; addXP(20); 
+            } else { alert("Need 5 coins!"); }
+        }
+        
+        function buyFriend(emoji) { 
+            if (stats.coins >= 200) { 
+                stats.coins -= 200; stats.friend = emoji; updateUI(); saveGame(); 
+            } else { alert("Need 200 coins!"); }
+        }
+        
+        function buySitter() { 
+            if (stats.coins >= 100) { 
+                stats.hasSitter = true; stats.coins -= 100; updateUI(); saveGame(); 
+            } else { alert("Need 100 coins!"); }
+        }
+
+        function feedBunny() { 
+            if (stats.carrots > 0 && stats.hunger < 100) { 
+                stats.carrots -= 1; stats.hunger = Math.min(100, stats.hunger + 20); addXP(20); 
+            } else if (stats.carrots <= 0) {
+                alert("Out of carrots! Buy more in the shop.");
+            }
+        }
+
+        function goSleep() { 
+            document.body.classList.add('night'); 
+            stats.coins += 30; 
+            setTimeout(() => { document.body.classList.remove('night'); }, 3000);
+            updateUI(); saveGame(); 
+        }
+
+        function showHome() { 
+            saveGame(); 
+            document.getElementById('home-screen').style.display = 'flex'; 
+            document.getElementById('game-container').style.display = 'none'; 
+            renderSaveList(); 
+        }
 
         setInterval(() => {
             if (document.getElementById('game-container').style.display === 'flex') {
