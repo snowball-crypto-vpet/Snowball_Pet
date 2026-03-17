@@ -35,10 +35,8 @@
             <button onclick="useGym()">Gym (5c / +20 XP)</button>
             <button onclick="doWork()">💼 Work (+10c)</button>
             <div id="pet-shop" style="display:none; margin-top:10px; border-top:1px solid #ccc;">
-                <strong>Adopt a Friend (200c):</strong><br>
-                <button onclick="buyFriend('🐶')">Dog</button>
-                <button onclick="buyFriend('🐱')">Cat</button>
-                <button onclick="buyFriend('🐟')">Fish</button>
+                <button onclick="buyFriend('🐶')">Dog (200c)</button>
+                <button onclick="buyFriend('🐱')">Cat (200c)</button>
             </div>
             <button onclick="closeShop()" style="background:#aaa;">CLOSE</button>
         </div>
@@ -72,11 +70,7 @@
             document.getElementById('friend-sprite').innerText = stats.friend || "";
             let xpNeeded = stats.level * 100;
             document.getElementById('xp-fill').style.width = Math.min(100, (stats.xp / xpNeeded) * 100) + "%";
-            
-            // CHANGED: Now unlocks at Level 10
-            if (stats.level >= 10) {
-                document.getElementById('pet-shop').style.display = "block";
-            }
+            if (stats.level >= 30) document.getElementById('pet-shop').style.display = "block";
         }
 
         function addXP(amount) {
@@ -140,12 +134,19 @@
             saveGame();
         }
 
-        function showHome() { saveGame(); document.getElementById('home-screen').style.display = 'flex'; document.getElementById('game-container').style.display = 'none'; renderSaveList(); }
+        function showHome() { 
+            saveGame(); 
+            document.getElementById('home-screen').style.display = 'flex'; 
+            document.getElementById('game-container').style.display = 'none'; 
+            renderSaveList();
+        }
 
         setInterval(() => {
+            // Only drain hunger if the lights are ON (not night)
             if (currentGameId && !document.body.classList.contains('night')) {
                 stats.hunger = Math.max(0, stats.hunger - 2);
-                updateUI(); saveGame();
+                updateUI(); 
+                saveGame();
             }
         }, 3000);
 
