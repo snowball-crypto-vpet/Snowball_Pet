@@ -6,8 +6,8 @@
     <style>
         body { margin: 0; height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: all 1s; background: #a2d2ff; font-family: sans-serif; overflow: hidden; }
         body.night { background: #1a1a2e; }
-        #home-screen, #shop-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #a2d2ff; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100; }
-        #shop-screen { background: rgba(162, 210, 255, 0.98); display: none; z-index: 200; }
+        #home-screen, #shop-screen, #minigame-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #a2d2ff; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100; }
+        #shop-screen, #minigame-screen { background: rgba(162, 210, 255, 0.98); display: none; z-index: 200; }
         #game-container { display: none; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100%; }
         .panel { background: rgba(255, 255, 255, 0.9); padding: 20px; border-radius: 20px; text-align: center; border: 4px solid #7cfc00; width: 80%; max-width: 300px; z-index: 10; margin: 10px 0; }
         #bunny-sprite { font-size: 100px; animation: bounce 2s infinite ease-in-out; position: relative; margin: 20px 0; z-index: 5; }
@@ -17,6 +17,9 @@
         @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-20px); } }
         button { padding: 10px 15px; margin: 5px; cursor: pointer; border-radius: 12px; border: none; background: #4cc9f0; color: white; font-weight: bold; box-shadow: 0 4px #4361ee; }
         #wake-btn { background: #ffbe0b; color: #333; display: none; font-size: 18px; padding: 15px; }
+        
+        /* Minigame Styles */
+        #game-canvas { background: #fff; border: 4px solid #4361ee; border-radius: 15px; cursor: none; }
     </style>
 </head>
 <body>
@@ -28,13 +31,13 @@
         </div>
         <div id="saveList" style="margin-top:20px;"></div>
     </div>
+
     <div id="shop-screen">
         <h2>🛒 SHOP</h2>
         <div class="panel">
             <h3 id="shop-coins">Coins: 0</h3>
             <button onclick="buyFood()">Carrot (20c)</button>
             <button onclick="useGym()">Gym (5c / +20 XP)</button>
-            <button onclick="doWork()">💼 Work (+10c)</button>
             <div id="pet-shop" style="display:none; margin-top:10px; border-top:1px solid #ccc;">
                 <strong>Pets (Lvl 10):</strong><br>
                 <button onclick="buyFriend('🐶')">Dog (200c)</button>
@@ -44,6 +47,15 @@
             <br><button onclick="closeShop()" style="background:#aaa;">CLOSE</button>
         </div>
     </div>
+
+    <div id="minigame-screen">
+        <h2>🥕 Carrot Catch</h2>
+        <p>Move mouse/touch to catch carrots!</p>
+        <canvas id="game-canvas" width="300" height="400"></canvas>
+        <h3 id="mini-score">Score: 0</h3>
+        <button onclick="endMinigame()" style="background:#ff4f4f;">QUIT</button>
+    </div>
+
     <div id="game-container">
         <div class="panel">
             <h2 id="current-game-name">Pet</h2>
@@ -56,17 +68,26 @@
         </div>
         <div id="bunny-sprite">🐰<div id="friend-sprite"></div></div>
         <div class="panel">
+            <button onclick="startMinigame()" style="background:#ffbe0b; color:#333;">🎮 MINI GAME</button>
             <button onclick="openShop()">🛍️ SHOP</button>
             <button onclick="showHome()" style="background:#aaa;">SAVE</button>
         </div>
     </div>
+
     <script>
         let currentGameId = null;
         let stats = { hunger: 100, coins: 75, carrots: 5, name: "", level: 1, xp: 0, friend: "" };
+        
+        // Minigame Variables
+        let canvas = document.getElementById('game-canvas');
+        let ctx = canvas.getContext('2d');
+        let gameActive = false;
+        let score = 0;
+        let playerX = 150;
+        let items = [];
 
         function updateUI() {
             if (!currentGameId) return;
-            // This is the line that was broken!
             document.getElementById('stats-display').innerText = "Hunger: " + stats.hunger + " | Coins: " + stats.coins + " | Carrots: " + stats.carrots;
             document.getElementById('current-game-name').innerText = stats.name;
             document.getElementById('shop-coins').innerText = "Coins: " + stats.coins;
@@ -75,12 +96,6 @@
             let xpNeeded = stats.level * 100;
             document.getElementById('xp-fill').style.width = Math.min(100, (stats.xp / xpNeeded) * 100) + "%";
             if (stats.level >= 10) document.getElementById('pet-shop').style.display = "block";
-        }
-
-        function addXP(amount) {
-            stats.xp += amount;
-            if (stats.xp >= (stats.level * 100)) { stats.xp = 0; stats.level++; stats.coins += 50; alert("LEVEL UP!"); }
-            updateUI(); saveGame();
         }
 
         function createNewGame() {
@@ -108,7 +123,6 @@
         function loadGame(id) {
             currentGameId = id;
             stats = JSON.parse(localStorage.getItem(id));
-            if (stats.carrots === undefined) stats.carrots = 0;
             document.getElementById('home-screen').style.display = 'none';
             document.getElementById('game-container').style.display = 'flex';
             updateUI();
@@ -117,38 +131,61 @@
         function saveGame() { if (currentGameId) localStorage.setItem(currentGameId, JSON.stringify(stats)); }
         function openShop() { document.getElementById('shop-screen').style.display = 'flex'; updateUI(); }
         function closeShop() { document.getElementById('shop-screen').style.display = 'none'; }
-        
-        function buyFood() {
-            if (stats.coins >= 20) {
-                stats.coins -= 20;
-                stats.carrots += 1;
-                updateUI();
-                saveGame();
-            }
-        }
-
+        function buyFood() { if (stats.coins >= 20) { stats.coins -= 20; stats.carrots += 1; updateUI(); saveGame(); } }
         function useGym() { if (stats.coins >= 5) { stats.coins -= 5; addXP(20); } }
-        function doWork() { stats.coins += 10; updateUI(); saveGame(); }
         
-        function buyFriend(e) {
-            if (stats.coins >= 200) {
-                stats.coins -= 200;
-                stats.friend = e;
-                updateUI();
-                saveGame();
-            }
-        }
-
         function feedBunny() {
             if (stats.carrots > 0 && stats.hunger < 100) {
                 stats.carrots -= 1;
                 stats.hunger = Math.min(100, stats.hunger + 20);
                 addXP(20);
-                updateUI();
-                saveGame();
-            } else if (stats.carrots <= 0) {
-                alert("Out of carrots! Buy some in the shop.");
             }
+        }
+
+        // --- Minigame Logic ---
+        function startMinigame() {
+            document.getElementById('minigame-screen').style.display = 'flex';
+            gameActive = true; score = 0; items = [];
+            requestAnimationFrame(gameLoop);
+        }
+
+        canvas.onmousemove = (e) => { playerX = e.offsetX; };
+        canvas.ontouchmove = (e) => { playerX = e.touches[0].clientX - canvas.offsetLeft; e.preventDefault(); };
+
+        function gameLoop() {
+            if (!gameActive) return;
+            ctx.clearRect(0, 0, 300, 400);
+            
+            // Draw Player Bunny
+            ctx.font = "40px Arial";
+            ctx.fillText("🐰", playerX - 20, 380);
+
+            // Spawn Carrots
+            if (Math.random() < 0.05) items.push({x: Math.random() * 280, y: 0});
+
+            for (let i = items.length - 1; i >= 0; i--) {
+                items[i].y += 5;
+                ctx.fillText("🥕", items[i].x, items[i].y);
+
+                // Collision Detection
+                if (items[i].y > 340 && Math.abs(items[i].x - (playerX - 20)) < 40) {
+                    score += 5;
+                    items.splice(i, 1);
+                    document.getElementById('mini-score').innerText = "Score: " + score;
+                } else if (items[i].y > 400) {
+                    items.splice(i, 1);
+                }
+            }
+            requestAnimationFrame(gameLoop);
+        }
+
+        function endMinigame() {
+            gameActive = false;
+            stats.coins += score;
+            document.getElementById('minigame-screen').style.display = 'none';
+            updateUI();
+            saveGame();
+            alert("Game Over! You earned " + score + " coins!");
         }
 
         function goSleep() {
@@ -156,16 +193,20 @@
             document.getElementById('sleep-btn').style.display = 'none';
             document.getElementById('wake-btn').style.display = 'inline-block';
             stats.coins += 30;
-            saveGame();
-            updateUI();
+            saveGame(); updateUI();
         }
 
         function wakeUp() {
             document.body.classList.remove('night');
             document.getElementById('sleep-btn').style.display = 'inline-block';
             document.getElementById('wake-btn').style.display = 'none';
-            saveGame();
-            updateUI();
+            saveGame(); updateUI();
+        }
+
+        function addXP(amount) {
+            stats.xp += amount;
+            if (stats.xp >= (stats.level * 100)) { stats.xp = 0; stats.level++; stats.coins += 50; alert("LEVEL UP!"); }
+            updateUI(); saveGame();
         }
 
         function showHome() { saveGame(); location.reload(); }
