@@ -27,18 +27,30 @@
 
         .panel { background: rgba(255, 255, 255, 0.9); padding: 15px; border-radius: 20px; text-align: center; border: 4px solid #7cfc00; width: 85%; max-width: 320px; }
 
-        /* XP BAR */
-        #xp-container { width: 100%; background: #eee; height: 10px; border-radius: 5px; margin-top: 5px; overflow: hidden; }
-        #xp-fill { background: #ffbe0b; height: 100%; width: 0%; transition: width 0.3s; }
+        /* FIXED XP BAR */
+        #xp-container { 
+            width: 100%; 
+            background: #333; /* Dark background so the yellow stands out */
+            height: 14px; 
+            border-radius: 7px; 
+            margin: 10px 0; 
+            overflow: hidden; 
+            border: 2px solid #4361ee; /* Blue border to make it visible */
+        }
+        #xp-fill { 
+            background: linear-gradient(90deg, #ffbe0b, #fb5607); 
+            height: 100%; 
+            width: 0%; 
+            transition: width 0.5s ease-in-out; 
+        }
 
-        #bunny-sprite { font-size: 100px; animation: bounce 2s infinite ease-in-out; position: relative; color: white; }
+        #bunny-sprite { font-size: 100px; animation: bounce 2s infinite ease-in-out; position: relative; }
         #sitter-emoji { position: absolute; right: -50px; bottom: 0; font-size: 40px; display: none; }
         #friend-sprite { position: absolute; left: -60px; bottom: 10px; font-size: 50px; }
 
         @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-30px); } }
 
         button { padding: 10px 15px; font-size: 14px; margin: 5px; cursor: pointer; border-radius: 15px; border: none; background: #4cc9f0; color: white; font-weight: bold; box-shadow: 0 4px #4361ee; }
-        button:disabled { background: #ccc; box-shadow: none; cursor: not-allowed; }
         .shop-btn { background: #ff9800; box-shadow: 0 4px #e68a00; width: 100%; font-size: 18px; }
     </style>
 </head>
@@ -69,7 +81,6 @@
                 <button onclick="buyFriend('🐱')">Cat</button>
                 <button onclick="buyFriend('🐟')">Fish</button>
             </div>
-            
             <hr>
             <button onclick="closeShop()" style="background:#aaa; box-shadow:0 4px #888;">CLOSE</button>
         </div>
@@ -80,10 +91,13 @@
         <div class="panel">
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <h2 id="current-game-name" style="margin:0; color:#4361ee;">Game</h2>
-                <div id="lvl-display" style="background:#ffbe0b; padding:5px 10px; border-radius:10px; font-weight:bold;">Lvl 1</div>
+                <div id="lvl-display" style="background:#ffbe0b; padding:5px 10px; border-radius:10px; font-weight:bold; border: 2px solid #fb5607;">Lvl 1</div>
             </div>
+            
+            <div style="font-size: 12px; text-align: left; margin-top: 10px; font-weight: bold;">Experience:</div>
             <div id="xp-container"><div id="xp-fill"></div></div>
-            <div id="stats" style="font-size: 16px; font-weight: bold; margin-top:10px;">Hunger: 100 | Coins: 75</div>
+
+            <div id="stats" style="font-size: 16px; font-weight: bold;">Hunger: 100 | Coins: 75</div>
             <div id="inv" style="font-weight: bold;">Carrots: 30</div>
             <button onclick="feedBunny()">🥕 Feed (+20 XP)</button>
             <button onclick="goSleep()">💤 Sleep (+30c)</button>
@@ -111,62 +125,15 @@
             document.getElementById('current-game-name').innerText = stats.name;
             document.getElementById('shop-coins').innerText = `Coins: ${stats.coins}`;
             document.getElementById('lvl-display').innerText = `Lvl ${stats.level}`;
-            document.getElementById('actual-bunny').style.color = stats.color;
             document.getElementById('friend-sprite').innerText = stats.friend || "";
             
-            // XP Bar
+            // XP Bar Logic
             let xpNeeded = stats.level * 100;
             let percent = (stats.xp / xpNeeded) * 100;
             document.getElementById('xp-fill').style.width = percent + "%";
 
-            // Pet Shop Unlock
             if (stats.level >= 30) {
                 document.getElementById('pet-shop').style.display = "block";
                 document.getElementById('pet-unlock-msg').style.display = "none";
             }
-
-            const sitterEmoji = document.getElementById('sitter-emoji');
-            sitterEmoji.style.display = stats.hasSitter ? "block" : "none";
-        }
-
-        function addXP(amount) {
-            stats.xp += amount;
-            let xpNeeded = stats.level * 100;
-            if (stats.xp >= xpNeeded) {
-                stats.xp = 0;
-                stats.level++;
-                stats.coins += 50;
-                alert("LEVEL UP! You reached Level " + stats.level + " and got 50 coins!");
-            }
-            updateUI();
-            saveGame();
-        }
-
-        function useGym() {
-            if (stats.coins >= 5) {
-                stats.coins -= 5;
-                document.getElementById('bunny-sprite').style.animationDuration = "0.5s";
-                setTimeout(() => { document.getElementById('bunny-sprite').style.animationDuration = "2s"; }, 3000);
-                addXP(20);
-            } else { alert("Need 5 coins!"); }
-        }
-
-        function buyFriend(emoji) {
-            if (stats.coins >= 200) {
-                stats.coins -= 200;
-                stats.friend = emoji;
-                updateUI();
-                saveGame();
-                alert("You adopted a new friend!");
-            } else { alert("Need 200 coins!"); }
-        }
-
-        function createNewGame() {
-            const name = document.getElementById('saveName').value || "New Game";
-            const id = "snowball_" + Date.now();
-            const newStats = { hunger: 100, coins: 75, carrots: 30, hasSitter: false, name: name, color: "white", level: 1, xp: 0, friend: "" };
-            localStorage.setItem(id, JSON.stringify(newStats));
-            renderSaveList();
-        }
-
-        function renderSaveList() {
+            document.getElementById('sitter-emoji').style.display =
