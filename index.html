@@ -38,7 +38,7 @@
             <button onclick="useGym()">Gym (5c / +20 XP)</button>
             <button onclick="doWork()">💼 Work (+10c)</button>
             <div id="pet-shop" style="display:none; margin-top:10px; border-top:2px solid #7cfc00; padding-top:10px;">
-                <strong>🐾 PET SHOP (Unlocked!)</strong><br>
+                <strong>🐾 PET SHOP</strong><br>
                 <button onclick="buyFriend('🐶')">Dog (200c)</button>
                 <button onclick="buyFriend('🐱')">Cat (200c)</button>
                 <button onclick="buyFriend('🐟')">Fish (200c)</button>
@@ -94,11 +94,8 @@
             let xpNeeded = stats.level * 100;
             document.getElementById('xp-fill').style.width = Math.min(100, (stats.xp / xpNeeded) * 100) + "%";
             
-            // Fixed the Pet Shop Unlock Check
             if (stats.level >= 10) {
                 document.getElementById('pet-shop').style.display = "block";
-            } else {
-                document.getElementById('pet-shop').style.display = "none";
             }
         }
 
@@ -155,9 +152,9 @@
                 stats.friend = e;
                 updateUI();
                 saveGame();
-                alert("You got a new friend: " + e + "!");
+                alert("You adopted a " + e + "!");
             } else {
-                alert("You need 200 coins for a pet!");
+                alert("You need 200 coins!");
             }
         }
 
