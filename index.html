@@ -8,7 +8,7 @@
         body.night { background: #1a1a2e; }
         #home-screen, #shop-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #a2d2ff; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100; }
         #shop-screen { background: rgba(162, 210, 255, 0.98); display: none; z-index: 200; overflow-y: auto; }
-        .panel { background: rgba(255, 255, 255, 0.9); padding: 15px; border-radius: 20px; text-align: center; border: 4px solid #7cfc00; width: 85%; max-width: 320px; }
+        .panel { background: rgba(255, 255, 255, 0.9); padding: 15px; border-radius: 20px; text-align: center; border: 4px solid #7cfc00; width: 85%; max-width: 320px; margin: 10px 0; }
         #xp-container { width: 100%; background: #333; height: 14px; border-radius: 7px; margin: 10px 0; overflow: hidden; border: 2px solid #4361ee; }
         #xp-fill { background: linear-gradient(90deg, #ffbe0b, #fb5607); height: 100%; width: 0%; transition: width 0.5s; }
         #bunny-sprite { font-size: 100px; animation: bounce 2s infinite ease-in-out; position: relative; margin: 20px 0; }
@@ -39,13 +39,13 @@
             <div id="pet-shop" style="display:none; margin-top:10px; border-top:1px solid #ccc;">
                 <strong>Adopt a Friend (Lvl 10):</strong><br>
                 <button onclick="buyFriend('🐶')">Dog (200c)</button>
-                <button onclick="buyFriend('🐱') )">Cat (200c)</button>
+                <button onclick="buyFriend('🐱')">Cat (200c)</button>
                 <button onclick="buyFriend('🐟')">Fish (200c)</button>
             </div>
             <button onclick="closeShop()" style="background:#aaa;">CLOSE</button>
         </div>
     </div>
-    <div id="game-container" style="display:none;">
+    <div id="game-container" style="display:none; flex-direction: column; align-items: center;">
         <div class="panel">
             <h2 id="current-game-name">Pet</h2>
             <div id="lvl-display">Lvl 1</div>
@@ -68,7 +68,6 @@
     <script>
         let currentGameId = null;
         let stats = { hunger: 100, coins: 75, carrots: 30, name: "", level: 1, xp: 0, friend: "", hasSitter: false };
-
         function updateUI() {
             if (!currentGameId) return;
             document.getElementById('stats').innerText = `Hunger: ${stats.hunger} | Coins: ${stats.coins}`;
@@ -82,20 +81,17 @@
             if (stats.level >= 10) document.getElementById('pet-shop').style.display = "block";
             if (stats.hasSitter) document.getElementById('sitterBtn').innerText = "Sitter Hired! ✅";
         }
-
         function addXP(amount) {
             stats.xp += amount;
             if (stats.xp >= (stats.level * 100)) { stats.xp = 0; stats.level++; stats.coins += 50; alert("LEVEL UP!"); }
             updateUI(); saveGame();
         }
-
         function createNewGame() {
             const name = document.getElementById('saveName').value || "Pet";
             const id = "snowball_" + Date.now();
             localStorage.setItem(id, JSON.stringify({...stats, name: name}));
             renderSaveList();
         }
-
         function renderSaveList() {
             const list = document.getElementById('saveList');
             list.innerHTML = "";
@@ -110,7 +106,6 @@
                 }
             }
         }
-
         function loadGame(id) {
             currentGameId = id;
             stats = JSON.parse(localStorage.getItem(id));
@@ -118,7 +113,6 @@
             document.getElementById('game-container').style.display = 'flex';
             updateUI();
         }
-
         function saveGame() { if (currentGameId) localStorage.setItem(currentGameId, JSON.stringify(stats)); }
         function openShop() { document.getElementById('shop-screen').style.display = 'flex'; updateUI(); }
         function closeShop() { document.getElementById('shop-screen').style.display = 'none'; }
@@ -128,7 +122,6 @@
         function buySitter() { if (stats.coins >= 100 && !stats.hasSitter) { stats.coins -= 100; stats.hasSitter = true; updateUI(); saveGame(); } }
         function buyFriend(e) { if (stats.coins >= 200) { stats.coins -= 200; stats.friend = e; updateUI(); saveGame(); } }
         function feedBunny() { if (stats.hunger < 100) { stats.hunger = Math.min(100, stats.hunger + 20); addXP(20); } }
-
         function goSleep() {
             document.body.classList.add('night');
             document.getElementById('sleep-btn').style.display = 'none';
@@ -136,16 +129,13 @@
             stats.coins += 30;
             saveGame(); updateUI();
         }
-
         function wakeUp() {
             document.body.classList.remove('night');
             document.getElementById('sleep-btn').style.display = 'inline-block';
             document.getElementById('wake-btn').style.display = 'none';
             saveGame();
         }
-
         function showHome() { saveGame(); document.getElementById('home-screen').style.display = 'flex'; document.getElementById('game-container').style.display = 'none'; renderSaveList(); }
-
         setInterval(() => {
             if (currentGameId && !document.body.classList.contains('night')) {
                 if (stats.hasSitter) stats.hunger = 100;
@@ -153,7 +143,6 @@
                 updateUI(); saveGame();
             }
         }, 3000);
-
         renderSaveList();
     </script>
 </body>
