@@ -11,46 +11,35 @@
         }
         body.night { background: #2c3e50; }
 
-        /* SCREENS */
         #home-screen, #shop-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: #a2d2ff; display: flex; flex-direction: column;
             align-items: center; justify-content: center; z-index: 100;
         }
-        #shop-screen { background: rgba(162, 210, 255, 0.95); display: none; z-index: 200; }
+        #shop-screen { background: rgba(162, 210, 255, 0.98); display: none; z-index: 200; overflow-y: auto; }
 
-        .save-list {
-            background: rgba(255, 255, 255, 0.5);
-            padding: 15px; border-radius: 20px; width: 280px; margin-top: 10px;
-        }
-        .save-item {
-            background: white; margin: 5px 0; padding: 10px;
-            border-radius: 10px; display: flex; justify-content: space-between; align-items: center;
-            border: 2px solid #4361ee;
-        }
+        .save-list { background: rgba(255, 255, 255, 0.5); padding: 15px; border-radius: 20px; width: 280px; margin-top: 10px; }
+        .save-item { background: white; margin: 5px 0; padding: 10px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; border: 2px solid #4361ee; }
 
         #game-container { display: none; width: 100%; height: 100%; flex-direction: column; align-items: center; justify-content: space-around; }
         #grass { position: absolute; bottom: 0; width: 100%; height: 20%; background: #7cfc00; z-index: -1; }
         body.night #grass { background: #004d00; }
 
-        .panel {
-            background: rgba(255, 255, 255, 0.9); padding: 15px;
-            border-radius: 20px; text-align: center; border: 4px solid #7cfc00;
-            width: 85%; max-width: 320px;
-        }
+        .panel { background: rgba(255, 255, 255, 0.9); padding: 15px; border-radius: 20px; text-align: center; border: 4px solid #7cfc00; width: 85%; max-width: 320px; }
+
+        /* XP BAR */
+        #xp-container { width: 100%; background: #eee; height: 10px; border-radius: 5px; margin-top: 5px; overflow: hidden; }
+        #xp-fill { background: #ffbe0b; height: 100%; width: 0%; transition: width 0.3s; }
 
         #bunny-sprite { font-size: 100px; animation: bounce 2s infinite ease-in-out; position: relative; color: white; }
         #sitter-emoji { position: absolute; right: -50px; bottom: 0; font-size: 40px; display: none; }
+        #friend-sprite { position: absolute; left: -60px; bottom: 10px; font-size: 50px; }
 
         @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-30px); } }
 
-        button {
-            padding: 10px 15px; font-size: 14px; margin: 5px; cursor: pointer;
-            border-radius: 15px; border: none; background: #4cc9f0; color: white;
-            font-weight: bold; box-shadow: 0 4px #4361ee;
-        }
+        button { padding: 10px 15px; font-size: 14px; margin: 5px; cursor: pointer; border-radius: 15px; border: none; background: #4cc9f0; color: white; font-weight: bold; box-shadow: 0 4px #4361ee; }
+        button:disabled { background: #ccc; box-shadow: none; cursor: not-allowed; }
         .shop-btn { background: #ff9800; box-shadow: 0 4px #e68a00; width: 100%; font-size: 18px; }
-        .color-dot { width: 30px; height: 30px; border-radius: 50%; display: inline-block; cursor: pointer; border: 2px solid white; margin: 5px; }
     </style>
 </head>
 <body>
@@ -65,37 +54,46 @@
     </div>
 
     <div id="shop-screen">
-        <h1 style="color: white;">🛒 SNOWBALL SHOP</h1>
+        <h1 style="color: white;">🛒 PET SHOP</h1>
         <div class="panel">
             <h3 id="shop-coins">Coins: 0</h3>
             <button onclick="buyFood()">Buy Carrot (20c)</button>
+            <button onclick="useGym()">🏋️ Use Gym (5c / +20 XP)</button>
             <button id="sitterBtn" onclick="buySitter()">Hire Sitter (100c)</button>
-            <button id="fireBtn" onclick="fireSitter()" style="background:#ff4d4d; display:none;">Fire Sitter</button>
             
             <hr>
-            <strong>Change Snowball's Color (50c)</strong><br>
-            <div class="color-dot" style="background: white;" onclick="changeColor('white')"></div>
-            <div class="color-dot" style="background: #ffc8dd;" onclick="changeColor('#ffc8dd')"></div>
-            <div class="color-dot" style="background: #bde0fe;" onclick="changeColor('#bde0fe')"></div>
-            <div class="color-dot" style="background: #ffafcc;" onclick="changeColor('#ffafcc')"></div>
+            <div id="pet-unlock-msg" style="color: #666; font-size: 12px;">Reach Level 30 to unlock Pets!</div>
+            <div id="pet-shop" style="display:none;">
+                <strong>Adopt a Friend (200c)</strong><br>
+                <button onclick="buyFriend('🐶')">Dog</button>
+                <button onclick="buyFriend('🐱')">Cat</button>
+                <button onclick="buyFriend('🐟')">Fish</button>
+            </div>
             
             <hr>
-            <button onclick="closeShop()" style="background:#aaa; box-shadow:0 4px #888;">CLOSE SHOP</button>
+            <button onclick="closeShop()" style="background:#aaa; box-shadow:0 4px #888;">CLOSE</button>
         </div>
     </div>
 
     <div id="game-container">
         <div id="grass"></div>
         <div class="panel">
-            <h2 id="current-game-name" style="margin:0; color:#4361ee;">Game</h2>
-            <div id="stats" style="font-size: 18px; font-weight: bold;">Hunger: 100 | Coins: 75</div>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h2 id="current-game-name" style="margin:0; color:#4361ee;">Game</h2>
+                <div id="lvl-display" style="background:#ffbe0b; padding:5px 10px; border-radius:10px; font-weight:bold;">Lvl 1</div>
+            </div>
+            <div id="xp-container"><div id="xp-fill"></div></div>
+            <div id="stats" style="font-size: 16px; font-weight: bold; margin-top:10px;">Hunger: 100 | Coins: 75</div>
             <div id="inv" style="font-weight: bold;">Carrots: 30</div>
-            <div id="sitter-status" style="color: #007bff; display: none;">🛡️ Sitter Active</div>
-            <button onclick="feedBunny()">🥕 Feed</button>
-            <button onclick="goSleep()">💤 Sleep</button>
+            <button onclick="feedBunny()">🥕 Feed (+20 XP)</button>
+            <button onclick="goSleep()">💤 Sleep (+30c)</button>
         </div>
 
-        <div id="bunny-sprite">🐰<div id="sitter-emoji">👩‍🍼</div></div>
+        <div id="bunny-sprite">
+            <span id="actual-bunny">🐰</span>
+            <div id="sitter-emoji">👩‍🍼</div>
+            <div id="friend-sprite"></div>
+        </div>
 
         <div class="panel">
             <button class="shop-btn" onclick="openShop()">🛍️ OPEN SHOP</button>
@@ -105,121 +103,70 @@
 
     <script>
         let currentGameId = null;
-        let stats = { hunger: 100, coins: 75, carrots: 30, hasSitter: false, name: "", color: "white" };
+        let stats = { hunger: 100, coins: 75, carrots: 30, hasSitter: false, name: "", color: "white", level: 1, xp: 0, friend: "" };
 
         function updateUI() {
             document.getElementById('stats').innerText = `Hunger: ${stats.hunger} | Coins: ${stats.coins}`;
             document.getElementById('inv').innerText = `Carrots: ${stats.carrots}`;
             document.getElementById('current-game-name').innerText = stats.name;
             document.getElementById('shop-coins').innerText = `Coins: ${stats.coins}`;
-            document.getElementById('bunny-sprite').style.color = stats.color;
+            document.getElementById('lvl-display').innerText = `Lvl ${stats.level}`;
+            document.getElementById('actual-bunny').style.color = stats.color;
+            document.getElementById('friend-sprite').innerText = stats.friend || "";
             
-            const sitterStatus = document.getElementById('sitter-status');
-            const sitterBtn = document.getElementById('sitterBtn');
-            const fireBtn = document.getElementById('fireBtn');
-            const sitterEmoji = document.getElementById('sitter-emoji');
+            // XP Bar
+            let xpNeeded = stats.level * 100;
+            let percent = (stats.xp / xpNeeded) * 100;
+            document.getElementById('xp-fill').style.width = percent + "%";
 
-            if (stats.hasSitter) {
-                sitterStatus.style.display = "block";
-                sitterBtn.style.display = "none";
-                fireBtn.style.display = "inline-block";
-                sitterEmoji.style.display = "block";
-            } else {
-                sitterStatus.style.display = "none";
-                sitterBtn.style.display = "inline-block";
-                fireBtn.style.display = "none";
-                sitterEmoji.style.display = "none";
+            // Pet Shop Unlock
+            if (stats.level >= 30) {
+                document.getElementById('pet-shop').style.display = "block";
+                document.getElementById('pet-unlock-msg').style.display = "none";
             }
+
+            const sitterEmoji = document.getElementById('sitter-emoji');
+            sitterEmoji.style.display = stats.hasSitter ? "block" : "none";
+        }
+
+        function addXP(amount) {
+            stats.xp += amount;
+            let xpNeeded = stats.level * 100;
+            if (stats.xp >= xpNeeded) {
+                stats.xp = 0;
+                stats.level++;
+                stats.coins += 50;
+                alert("LEVEL UP! You reached Level " + stats.level + " and got 50 coins!");
+            }
+            updateUI();
+            saveGame();
+        }
+
+        function useGym() {
+            if (stats.coins >= 5) {
+                stats.coins -= 5;
+                document.getElementById('bunny-sprite').style.animationDuration = "0.5s";
+                setTimeout(() => { document.getElementById('bunny-sprite').style.animationDuration = "2s"; }, 3000);
+                addXP(20);
+            } else { alert("Need 5 coins!"); }
+        }
+
+        function buyFriend(emoji) {
+            if (stats.coins >= 200) {
+                stats.coins -= 200;
+                stats.friend = emoji;
+                updateUI();
+                saveGame();
+                alert("You adopted a new friend!");
+            } else { alert("Need 200 coins!"); }
         }
 
         function createNewGame() {
-            const nameInput = document.getElementById('saveName');
-            const name = nameInput.value || "New Game";
+            const name = document.getElementById('saveName').value || "New Game";
             const id = "snowball_" + Date.now();
-            const newStats = { hunger: 100, coins: 75, carrots: 30, hasSitter: false, name: name, color: "white" };
+            const newStats = { hunger: 100, coins: 75, carrots: 30, hasSitter: false, name: name, color: "white", level: 1, xp: 0, friend: "" };
             localStorage.setItem(id, JSON.stringify(newStats));
-            nameInput.value = "";
             renderSaveList();
         }
 
         function renderSaveList() {
-            const list = document.getElementById('saveList');
-            list.innerHTML = "<strong>CHOOSE A SAVE:</strong>";
-            for (let i = 0; i < localStorage.length; i++) {
-                const id = localStorage.key(i);
-                if (id && id.startsWith("snowball_")) {
-                    const data = JSON.parse(localStorage.getItem(id));
-                    const div = document.createElement('div');
-                    div.className = "save-item";
-                    div.innerHTML = `
-                        <span onclick="loadGame('${id}')" style="cursor:pointer; flex:1;"><b>${data.name}</b> (💰${data.coins})</span>
-                        <button class="delete-btn" onclick="deleteGame('${id}')">DEL</button>
-                    `;
-                    list.appendChild(div);
-                }
-            }
-        }
-
-        function loadGame(id) {
-            currentGameId = id;
-            stats = JSON.parse(localStorage.getItem(id));
-            document.getElementById('home-screen').style.display = 'none';
-            document.getElementById('game-container').style.display = 'flex';
-            updateUI();
-        }
-
-        function saveGame() { if (currentGameId) localStorage.setItem(currentGameId, JSON.stringify(stats)); }
-
-        function deleteGame(id) { if (confirm("Delete this save?")) { localStorage.removeItem(id); renderSaveList(); } }
-
-        function openShop() { document.getElementById('shop-screen').style.display = 'flex'; updateUI(); }
-        function closeShop() { document.getElementById('shop-screen').style.display = 'none'; }
-
-        function buyFood() {
-            if (stats.coins >= 20) { stats.coins -= 20; stats.carrots += 1; updateUI(); saveGame(); }
-            else alert("Need coins!");
-        }
-
-        function buySitter() {
-            if (stats.coins >= 100) { stats.hasSitter = true; stats.coins -= 100; updateUI(); saveGame(); }
-            else alert("Need coins!");
-        }
-
-        function fireSitter() {
-            if (confirm("Fire the sitter?")) { stats.hasSitter = false; updateUI(); saveGame(); }
-        }
-
-        function changeColor(newColor) {
-            if (stats.color === newColor) return;
-            if (stats.coins >= 50) {
-                stats.coins -= 50;
-                stats.color = newColor;
-                updateUI();
-                saveGame();
-            } else { alert("Need 50 coins for a new color!"); }
-        }
-
-        function showHome() { saveGame(); document.getElementById('home-screen').style.display = 'flex'; document.getElementById('game-container').style.display = 'none'; renderSaveList(); }
-
-        function feedBunny() {
-            document.body.classList.remove('night');
-            if (stats.carrots > 0 && stats.hunger < 100) {
-                stats.carrots -= 1; stats.hunger = Math.min(100, stats.hunger + 20);
-                updateUI(); saveGame();
-            }
-        }
-
-        function goSleep() { document.body.classList.add('night'); stats.coins += 30; updateUI(); saveGame(); }
-
-        setInterval(() => {
-            if (document.getElementById('game-container').style.display === 'flex') {
-                if (stats.hasSitter) stats.hunger = 100;
-                else if (stats.hunger > 0) stats.hunger -= 5;
-                updateUI(); saveGame();
-            }
-        }, 2000);
-
-        renderSaveList();
-    </script>
-</body>
-</html>
