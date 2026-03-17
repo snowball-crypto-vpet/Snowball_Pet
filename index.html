@@ -11,7 +11,6 @@
         #game-container { display: none; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100%; }
         .panel { background: rgba(255, 255, 255, 0.9); padding: 20px; border-radius: 20px; text-align: center; border: 4px solid #7cfc00; width: 80%; max-width: 300px; z-index: 10; margin: 10px 0; }
         #bunny-sprite { font-size: 100px; animation: bounce 2s infinite ease-in-out; position: relative; margin: 20px 0; z-index: 5; }
-        .sitter-style { position: absolute; right: -50px; bottom: 0; font-size: 40px; }
         #friend-sprite { position: absolute; left: -60px; bottom: 10px; font-size: 50px; }
         #xp-container { width: 100%; background: #333; height: 14px; border-radius: 7px; margin: 10px 0; overflow: hidden; border: 2px solid #4361ee; }
         #xp-fill { background: linear-gradient(90deg, #ffbe0b, #fb5607); height: 100%; width: 0%; transition: width 0.5s; }
@@ -36,7 +35,6 @@
             <button onclick="buyFood()">Carrot (20c)</button>
             <button onclick="useGym()">Gym (5c / +20 XP)</button>
             <button onclick="doWork()">💼 Work (+10c)</button>
-            <button id="sitterBtn" onclick="buySitter()">Hire Sitter (100c)</button>
             <div id="pet-shop" style="display:none; margin-top:10px; border-top:1px solid #ccc;">
                 <strong>Pets (Lvl 10):</strong><br>
                 <button onclick="buyFriend('🐶')">Dog (200c)</button>
@@ -64,7 +62,7 @@
     </div>
     <script>
         let currentGameId = null;
-        let stats = { hunger: 100, coins: 75, name: "", level: 1, xp: 0, friend: "", hasSitter: false };
+        let stats = { hunger: 100, coins: 75, name: "", level: 1, xp: 0, friend: "" };
         function updateUI() {
             if (!currentGameId) return;
             document.getElementById('stats').innerText = `Hunger: ${stats.hunger} | Coins: ${stats.coins}`;
@@ -72,12 +70,6 @@
             document.getElementById('shop-coins').innerText = `Coins: ${stats.coins}`;
             document.getElementById('lvl-display').innerText = `Lvl ${stats.level}`;
             document.getElementById('friend-sprite').innerText = stats.friend || "";
-            if (stats.hasSitter && !document.getElementById('real-sitter')) {
-                const s = document.createElement('div');
-                s.id = 'real-sitter'; s.className = 'sitter-style'; s.innerText = '👩‍🍼';
-                document.getElementById('bunny-sprite').appendChild(s);
-                document.getElementById('sitterBtn').innerText = "Sitter Hired! ✅";
-            }
             let xpNeeded = stats.level * 100;
             document.getElementById('xp-fill').style.width = Math.min(100, (stats.xp / xpNeeded) * 100) + "%";
             if (stats.level >= 10) document.getElementById('pet-shop').style.display = "block";
@@ -118,7 +110,6 @@
         function buyFood() { if (stats.coins >= 20) { stats.coins -= 20; updateUI(); saveGame(); } }
         function useGym() { if (stats.coins >= 5) { stats.coins -= 5; addXP(20); } }
         function doWork() { stats.coins += 10; updateUI(); saveGame(); }
-        function buySitter() { if (stats.coins >= 100 && !stats.hasSitter) { stats.coins -= 100; stats.hasSitter = true; updateUI(); saveGame(); } }
         function buyFriend(e) { if (stats.coins >= 200) { stats.coins -= 200; stats.friend = e; updateUI(); saveGame(); } }
         function feedBunny() { if (stats.hunger < 100) { stats.hunger = Math.min(100, stats.hunger + 20); addXP(20); } }
         function goSleep() {
@@ -136,8 +127,7 @@
         function showHome() { saveGame(); location.reload(); }
         setInterval(() => {
             if (currentGameId && !document.body.classList.contains('night')) {
-                if (stats.hasSitter) stats.hunger = 100;
-                else stats.hunger = Math.max(0, stats.hunger - 2);
+                stats.hunger = Math.max(0, stats.hunger - 2);
                 updateUI(); saveGame();
             }
         }, 3000);
