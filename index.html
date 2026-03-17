@@ -17,9 +17,7 @@
         @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-20px); } }
         button { padding: 10px 15px; margin: 5px; cursor: pointer; border-radius: 12px; border: none; background: #4cc9f0; color: white; font-weight: bold; box-shadow: 0 4px #4361ee; }
         #wake-btn { background: #ffbe0b; color: #333; display: none; font-size: 18px; padding: 15px; }
-        
-        /* Minigame Styles */
-        #game-canvas { background: #fff; border: 4px solid #4361ee; border-radius: 15px; cursor: none; }
+        #game-canvas { background: #fff; border: 4px solid #4361ee; border-radius: 15px; cursor: crosshair; touch-action: none; }
     </style>
 </head>
 <body>
@@ -50,7 +48,7 @@
 
     <div id="minigame-screen">
         <h2>🥕 Carrot Catch</h2>
-        <p>Move mouse/touch to catch carrots!</p>
+        <p>Catch carrots to earn coins!</p>
         <canvas id="game-canvas" width="300" height="400"></canvas>
         <h3 id="mini-score">Score: 0</h3>
         <button onclick="endMinigame()" style="background:#ff4f4f;">QUIT</button>
@@ -78,7 +76,6 @@
         let currentGameId = null;
         let stats = { hunger: 100, coins: 75, carrots: 5, name: "", level: 1, xp: 0, friend: "" };
         
-        // Minigame Variables
         let canvas = document.getElementById('game-canvas');
         let ctx = canvas.getContext('2d');
         let gameActive = false;
@@ -142,32 +139,29 @@
             }
         }
 
-        // --- Minigame Logic ---
         function startMinigame() {
             document.getElementById('minigame-screen').style.display = 'flex';
             gameActive = true; score = 0; items = [];
+            document.getElementById('mini-score').innerText = "Score: 0";
             requestAnimationFrame(gameLoop);
         }
 
         canvas.onmousemove = (e) => { playerX = e.offsetX; };
-        canvas.ontouchmove = (e) => { playerX = e.touches[0].clientX - canvas.offsetLeft; e.preventDefault(); };
+        canvas.ontouchmove = (e) => { 
+            let rect = canvas.getBoundingClientRect();
+            playerX = e.touches[0].clientX - rect.left;
+            e.preventDefault(); 
+        };
 
         function gameLoop() {
             if (!gameActive) return;
             ctx.clearRect(0, 0, 300, 400);
-            
-            // Draw Player Bunny
             ctx.font = "40px Arial";
             ctx.fillText("🐰", playerX - 20, 380);
-
-            // Spawn Carrots
             if (Math.random() < 0.05) items.push({x: Math.random() * 280, y: 0});
-
             for (let i = items.length - 1; i >= 0; i--) {
                 items[i].y += 5;
                 ctx.fillText("🥕", items[i].x, items[i].y);
-
-                // Collision Detection
                 if (items[i].y > 340 && Math.abs(items[i].x - (playerX - 20)) < 40) {
                     score += 5;
                     items.splice(i, 1);
